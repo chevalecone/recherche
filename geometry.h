@@ -1,0 +1,1 @@
+void D2Q9(double* omega_i,double** xi,double xi_r);

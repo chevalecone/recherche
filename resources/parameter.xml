@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<MAIN>
+  <mesh>
+    <dx>0.01</dx>
+  </mesh>
+  <time>
+    <timeEnd>10000</timeEnd>
+	<error>0.0000001</error>
+	<outputFrequency>5000</outputFrequency>
+  </time>
+  <domain>
+    <xmin>0</xmin>
+    <xmax>0.5</xmax>
+    <ymin>0</ymin>
+    <ymax>0.5</ymax>  
+  </domain>
+  <properties>
+    <tau>1</tau>
+	  <rho0>1</rho0>
+	  <mu>0.000288</mu>
+  </properties>
+</MAIN>
+  
