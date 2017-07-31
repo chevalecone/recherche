@@ -26,17 +26,20 @@ void TRT_creation(int j, Lattice lat, double** f_minus, double** f_plus, double*
 	}
 }
 
-void MRT_forcing(double* F, Lattice lat, double* Fi, int j)
+void MRT_forcing(double** F, Lattice lat, double* Fi, int N)
 {
-	F[0] = 0;
-	F[1] = 6*(lat.u_[j][0]*Fi[0]+lat.u_[j][1]*Fi[1]);
-	F[2] = -6*(lat.u_[j][0]*Fi[0]+lat.u_[j][1]*Fi[1]);
-	F[3] = Fi[0];
-	F[4] = -Fi[0];
-	F[5] = Fi[1];
-	F[6] = -Fi[1];
-	F[7] = 2*(lat.u_[j][0]*Fi[0]-lat.u_[j][1]*Fi[1]);
-	F[8] = lat.u_[j][0]*Fi[0]+lat.u_[j][1]*Fi[1];
+	for (int j=0;j<N;j++)
+	{
+	F[j][0] = 0;
+	F[j][1] = 6*(lat.u_[j][0]*Fi[0]+lat.u_[j][1]*Fi[1]);
+	F[j][2] = -6*(lat.u_[j][0]*Fi[0]+lat.u_[j][1]*Fi[1]);
+	F[j][3] = Fi[0];
+	F[j][4] = -Fi[0];
+	F[j][5] = Fi[1];
+	F[j][6] = -Fi[1];
+	F[j][7] = 2*(lat.u_[j][0]*Fi[0]-lat.u_[j][1]*Fi[1]);
+	F[j][8] = lat.u_[j][0]*Fi[0]+lat.u_[j][1]*Fi[1];
+	}
 }
 
 void MRT_moment(int j,int k, Lattice lat, float** M, int Q)
@@ -175,24 +178,44 @@ float** MRT_S(int Q, double nu, double cs, double dt) // Matrice S des temps de 
 	return matrix;
 }
 
-void MRT_collision( int j,  int k, double** f_star, float** C, Lattice lat,  int Q, double dt)
+void MRT_collision( int j, double** f_star, float** C, Lattice lat,  int Q, double dt)
 {
 	double sum=0;
-	for ( int i=0;i<Q;i++)
+	for (int k=0;k<Q;k++)
 	{
+		for ( int i=0;i<Q;i++)
+		{
 		sum+=C[k][i]*(lat.m_[j][i]-lat.m0_[j][i]);
+		}
+		f_star[j][k] = lat.f_[j][k]-sum;
+		sum=0;
 	}
-	f_star[j][k] = lat.f_[j][k]-sum;
+	
 }
 
-void MRT_collision_forcing( int j,  int k, double** f_star, float** C, Lattice lat,  int Q, double dt, double** F2)
+void MRT_forcing_collision(int j, double** f_star, float** C, Lattice lat,  int Q, double dt, float** F, float** C3, float** F_bar)
 {
 	double sum=0;
-	for ( int i=0;i<Q;i++)
+	double sum2=0;
+	for (int k=0;k<Q;k++)
 	{
-		sum+=C[k][i]*(lat.m_[j][i]-lat.m0_[j][i])-dt*F2[k][i];
+		for (int i=0;i<Q;i++)
+		{
+		sum+=C3[k][i]*F_bar[j][i];
+		}
+		F[j][k] = sum;
+		sum=0;
 	}
-	f_star[j][k] = lat.f_[j][k]-sum;
+
+	for (int k=0;k<Q;k++)
+	{
+		for (int i=0;i<Q;i++)
+		{
+		sum2+=C[k][i]*(lat.m_[j][i]-lat.m0_[j][i]);
+		}
+		f_star[j][k] = lat.f_[j][k]-sum+dt*F[j][k];
+		sum2=0;
+	}
 }
 
 
@@ -325,3 +348,117 @@ void matrix_product(float **A, float **B,float **C,  int Q) // produit matriciel
 		}
 	}
 }
+
+void affichage_matrix(int Q, float** M, float** invM, float** Si, float** C, float** F, float** F2)
+{
+	printf("Matrice de passage : \n");
+	for (int i =0;i<Q;i++)
+	{
+		for (int j=0;j<Q;j++)
+		{
+			printf("%0.0f \t",M[i][j]);
+		}
+		printf("\n");
+	}
+	
+	printf("Matrice inverse de passage : \n");
+	for (int i =0;i<Q;i++)
+	{
+		for (int j=0;j<Q;j++)
+		{
+			printf("%0.3f \t",invM[i][j]);
+		}
+		printf("\n");
+	}
+	
+	printf("Matrice de relaxation : \n");
+	for (int i =0;i<Q;i++)
+	{
+		for (int j=0;j<Q;j++)
+		{
+			printf("%0.3f \t",Si[i][j]);
+		}
+		printf("\n");
+	}
+	
+	printf("Matrice du produit M-1 * S : \n");
+	for (int i =0;i<Q;i++)
+	{
+		for (int j=0;j<Q;j++)
+		{
+			printf("%0.3f \t",C[i][j]);
+		}
+		printf("\n");
+	}
+
+	printf("Matrice de forçage F: \n");
+	for (int i=0;i<Q;i++)
+	{
+		printf("%0.3f \n",F[i]);
+	}
+
+	printf("Matrice du produit (I-0.5*S)*F: \n");
+		for (int i =0;i<Q;i++)
+	{
+		for (int j=0;j<Q;j++)
+		{
+			printf("%0.3f \t",F2[i][j]);
+		}
+		printf("\n");
+	}
+}
+
+
+
+void MRT_forcing(int j, int k, double cs, double* omega_i, double** xi, double* Fi, float** F_bar, Lattice lat, int D)
+{
+	//Rappel : F_bar = omega_i * [ci*F/cs² + uF : (cici-cs²I)/cs^4]
+	//Rappel : F = invM*(I- 1/2 * S)*M*F_bar
+
+	double sum = 0; //produit scalaire ci * F
+	double sum2 = 0; //somme de uF:(cici-cs²I)
+	double** matrice1 = new double*[D]; //matrice uF
+	double** matrice2 = new double*[D]; //matrice cici
+	double** matrice3 = new double*[D]; //matrice cs²I
+	double** matrice4 = new double*[D]; //matrice cici-cs²I
+
+	
+	for (int l =0;l<D;l++)
+	{
+		matrice1[l] = new double[D];
+		matrice2[l] = new double[D];
+		matrice3[l] = new double[D];
+		matrice4[l] = new double[D];
+		for (int m=0;m<D;m++)
+		{
+			matrice1[l][m] = lat.u_[j][l]*Fi[m];
+			matrice2[l][m] = xi[k][l]*xi[k][m];
+			if(l==m)
+			{
+				matrice3[l][m] = cs*cs;
+			}
+			else
+			{
+				matrice3[l][m] = 0;	
+			}
+		}
+		for (int m=0;m<D;m++)
+		{
+			matrice4[l][m] = matrice2[l][m]-matrice3[l][m];
+		}
+	}	
+	for (int l =0;l<D;l++)
+	{
+		sum+=xi[k][l]*Fi[l];
+		for (int m=0;m<D;m++)
+		{
+			sum2+=matrice1[l][m]*matrice4[m][l];
+		}
+	}
+	F_bar[j][k] = omega_i[k]*( 1/(cs*cs) * sum + 1/(cs*cs*cs*cs) * sum2);
+	free(matrice1);
+	free(matrice2);
+	free(matrice3);
+	free(matrice4);
+}
+

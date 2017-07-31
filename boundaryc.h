@@ -12,6 +12,11 @@ void bounceback_S_BC( int j, int cas, Lattice lat, double** f_star);
 void bounceback_E_BC( int j, int cas, Lattice lat, double** f_star);
 void bounceback_W_BC( int j, int cas, Lattice lat, double** f_star);
 
+void bounceback_N_Collision(int j, int cas, Lattice lat, double** f_star);
+void bounceback_S_Collision(int j, int cas, Lattice lat, double** f_star);
+void bounceback_E_Collision(int j, int cas, Lattice lat, double** f_star);
+void bounceback_W_Collision(int j, int cas, Lattice lat, double** f_star);
+
 //SOLIDES
 void bounceback_solid_BC( int nx,int const& j, Lattice lat, double** f_star, int** const& conn, bool* typeLat,  int* const& bb, double& nombre, int* pos);
 
