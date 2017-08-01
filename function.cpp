@@ -16,35 +16,38 @@
 
 double pscal(double *a,double *b,  int D) //fonction pour le produit scalaire en D dimensions
 {
-	double produit =0;
+	double* produit =new double[1];
 	for ( int i=0;i<D;i++)
 	{
-		produit+=a[i]*b[i];
+		produit[0]+=a[i]*b[i];
 	}
-return produit;
+return produit[0];
+delete produit;
 }
 
-void density ( int j, int Q, Lattice lat, double sigma) //fonction pour la somme des fi pour calculer la masse volumique
+void density ( int j, int Q, Lattice lat) //fonction pour la somme des fi pour calculer la masse volumique
 {
-	sigma = 0;
+	double* sigma = new double[1];
 	for ( int i=0;i<Q;i++)
 	{
-		sigma+=lat.f_[j][i];
+		sigma[0]+=lat.f_[j][i];
 	}
-	lat.rho_[j] = sigma;
+	lat.rho_[j] = sigma[0];
+	delete sigma;
 }
 void velocity( int j, int D,  int Q, double** xi, Lattice lat)
 {
-	double sigma;
+	double* sigma = new double[1];
 	for ( int k=0;k<D;k++)
 	{
-		sigma = 0;
+		sigma[0]= 0;
 		for ( int i=0;i<Q;i++)
 		{
-			sigma+=lat.f_[j][i]*xi[i][k];
+			sigma[0]+=lat.f_[j][i]*xi[i][k];
 		}
-		lat.u_[j][k] = sigma/lat.rho_[j];
+		lat.u_[j][k] = sigma[0]/lat.rho_[j];
 	}
+	delete sigma;
 }
 void domainCondition(int nx, int ny,  int* cas)
 {

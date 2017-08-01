@@ -86,7 +86,6 @@ void periodic_WE_BC( int j,int nx, int ny,  int cas, Lattice lat, double** f_sta
 		lat.f_[j][3] = f_star[0][3]; //Condition périodique en sortie
 		lat.f_[j][7] = f_star[nx][7];
 		//lat.f_[j][6] = f_star[nx*ny-nx][6];
-
 		break;
 		case 7://N-O
 		lat.f_[j][1] = f_star[nx*ny-1][1];//Condition périodique en entrée
@@ -301,6 +300,7 @@ void bounceback_S_BC( int j, int cas, Lattice lat, double** f_star)
 		lat.f_[j][5] = lat.f_[j][7];
 		lat.f_[j][6] = lat.f_[j][8];
 		break;
+		case 6: //SE
 		lat.f_[j][2] = lat.f_[j][4];
 		lat.f_[j][5] = lat.f_[j][7];
 		lat.f_[j][6] = lat.f_[j][8];

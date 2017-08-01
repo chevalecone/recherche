@@ -1,8 +1,7 @@
 //*************************CALCULS MACROSCOPIQUES**************************//
 double pscal(double *a,double *b,  int D);
-void density ( int j, int Q, Lattice lat, double sigma);
+void density ( int j, int Q, Lattice lat);
 void velocity( int j, int D,  int Q, double** xi, Lattice lat);
-
 
 //*************************GEOMETRIE DU DOMAINE**************************//
 
