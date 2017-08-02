@@ -13,4 +13,7 @@ CBBSR s'inspire de Succi-2002
 
 02/08/17
 Essai de lien coefficient d'accomodation - Kn
+Extrapolation method pour inlet/outlet
+Code MRT : enlèvement f_star dans le bounceback (n'intervient pas)
+Calcul de Tau en utilisant d'abord la méthode IPL puis ensuite VHS (Esfahani 2014)
 Essai du calcul de DBB
