@@ -15,6 +15,7 @@ CBBSR s'inspire de Succi-2002
 Essai de lien coefficient d'accomodation - Kn
 Extrapolation method pour inlet/outlet
 Extrapolation method abandonnée : modified density ne semble pas intervenir dans la collision en MRT
+On teste equilibrium distribution pour inlet/outlet
 Code MRT : enlèvement f_star dans le bounceback (n'intervient pas)
 Calcul de Tau en utilisant d'abord la méthode IPL puis ensuite VHS (Esfahani 2014)
 Essai du calcul de DBB
