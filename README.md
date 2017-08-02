@@ -33,4 +33,6 @@ Code MRT : enlèvement f_star dans le bounceback (n'intervient pas)
 
 Calcul de Tau en utilisant d'abord la méthode IPL puis ensuite VHS (Esfahani 2014)
 
-Essai du calcul de DBB
+Essai du calcul de DBB (pas encore fait)
+
+
