@@ -35,4 +35,19 @@ Calcul de Tau en utilisant d'abord la méthode IPL puis ensuite VHS (Esfahani 20
 
 Essai du calcul de DBB (pas encore fait)
 
+03/08/17
+Continuer la recherche pour l'equilibrium BC
+
+ZH ne marche vraiment pas
+
+Fonction pour calculer les fi,eq en se basant sur les tenseurs (réussi)
+
+Autres BC à part periodic conditions ne semblent pas marcher
+Equilibrium BC : calcul de fi,eq pour les populations manquantes avec une densité imposée, et des vélocités extrapolées <-- comment le sont-elles ?
+
+Parallélisation du code avec OpenMP : librairie omp.h manquante
+   - Parallélisation non réussie : compilée, mais ralentit le code ??
+  
+Reprise des résultats de Arabjamoloei (2016) pour vérifier CBBSR et l'importance d'une viscosité fonction du temps de relaxation.
+   
 
