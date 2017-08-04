@@ -50,4 +50,9 @@ Parallélisation du code avec OpenMP : librairie omp.h manquante
   
 Reprise des résultats de Arabjamoloei (2016) pour vérifier CBBSR et l'importance d'une viscosité fonction du temps de relaxation.
    
+04/08/17
+CBBSR : dépend de f_star et pas de lat.f_
 
+Changement pour la fonction propagation : on effectue tous les propagations sur la lattice j (comme ça une seule boucle for)
+
+Changer la méthode pour equilibrium ? calculer sur (nx+1)*(ny+1)
