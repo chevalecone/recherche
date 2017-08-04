@@ -52,6 +52,7 @@ Reprise des résultats de Arabjamoloei (2016) pour vérifier CBBSR et l'importan
    
 04/08/17
 CBBSR : dépend de f_star et pas de lat.f_
+   - Note : pas encore déterminé, on obtient pas les mêmes résultats que Arabjamoloei car inlet/outlet est basé sur velocity_inlet et pressure_outlet mep par He & Doolen (2002), alors qu'on utilise des conditions périodiques --> la vitesse max augmente quand on augmente la réflexion spéculaire
 
 Changement pour la fonction propagation : on effectue tous les propagations sur la lattice j (comme ça une seule boucle for)
 
