@@ -64,6 +64,6 @@ Abandon du calcul sur (nx+1)*(ny+1) : la modification de la méthode de calcul e
 Utilisation de l'equilibrium inlet/outlet sur un maillage nx*ny avec une extrapolation UNIQUEMENT pour la vitesse de la lattice voisine.
 Autres extrapolations possibles : u(j) = 2*u(j+1)-u(j+2) (pour inlet), u(j) = 2*u(j-1)-u(j-2) (pour outlet)
 
-PS : pour des Ma plus élevés, on retrouve les mêmes résultats que Z-H, à savoir qu'il y a un gonflement de la vitesse (une sorte de vorticité à l'inlet puis retour à un Poiseuille classique)
+PS : pour des Ma plus élevés, on retrouve les mêmes résultats que Z-H, à savoir qu'il y a un gonflement de la vitesse (une sorte de vorticité à l'inlet puis retour à un Poiseuille classique) : le milieu du conduit ressemble à un Poiseuille "classique" ssi le conduit est assez allongé.
 Retour aux conditions périodiques, calcul d'un Poiseuille classique, puis MEP de la CBBSR (retrouver la référence)
 Lire les autres références qui peuvent être exploitables
