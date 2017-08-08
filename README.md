@@ -57,3 +57,10 @@ CBBSR : dépend de f_star et pas de lat.f_
 Changement pour la fonction propagation : on effectue tous les propagations sur la lattice j (comme ça une seule boucle for)
 
 Changer la méthode pour equilibrium ? calculer sur (nx+1)*(ny+1)
+
+08/08/17
+Abandon du calcul sur (nx+1)*(ny+1) : la modification de la méthode de calcul est trop conséquente
+Utilisation de l'equilibrium inlet/outlet sur un maillage nx*ny avec une extrapolation UNIQUEMENT pour la vitesse de la lattice voisine.
+Autres extrapolations possibles : u(j) = 2*u(j+1)-u(j+2) (pour inlet), u(j) = 2*u(j-1)-u(j-2) (pour outlet)
+Retour aux conditions périodiques, calcul d'un Poiseuille classique, puis MEP de la CBBSR (retrouver la référence)
+Lire les autres références qui peuvent être exploitables
