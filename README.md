@@ -72,3 +72,8 @@ Lire les autres références qui peuvent être exploitables
 ZH ou extrapolation inlet/outlet (Dirichlet BC) marche lorsque le conduit est assez long ie. le milieu de l'écoulement n'est pas influencé par les BC et les singularités.
 
 Calcul en écoulement raréfié avec la MRT_Guo_2008 sans vitesse du mur (ie pas de Couette, on fait Poiseuille) et sans Wall function pour l'instant.
+Kn = 0.001, 0.1, 0.2, 0.3, 0.4, 0.5
+
+Création du MATLAB pour post-processing
+
+Code DBB en cours
