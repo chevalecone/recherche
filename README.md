@@ -67,3 +67,8 @@ Autres extrapolations possibles : u(j) = 2*u(j+1)-u(j+2) (pour inlet), u(j) = 2*
 PS : pour des Ma plus élevés, on retrouve les mêmes résultats que Z-H, à savoir qu'il y a un gonflement de la vitesse (une sorte de vorticité à l'inlet puis retour à un Poiseuille classique) : le milieu du conduit ressemble à un Poiseuille "classique" ssi le conduit est assez allongé.
 Retour aux conditions périodiques, calcul d'un Poiseuille classique, puis MEP de la CBBSR (retrouver la référence)
 Lire les autres références qui peuvent être exploitables
+
+09/08/17
+ZH ou extrapolation inlet/outlet (Dirichlet BC) marche lorsque le conduit est assez long ie. le milieu de l'écoulement n'est pas influencé par les BC et les singularités.
+
+Calcul en écoulement raréfié avec la MRT_Guo_2008 sans vitesse du mur (ie pas de Couette, on fait Poiseuille) et sans Wall function pour l'instant.
