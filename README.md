@@ -74,9 +74,12 @@ ZH ou extrapolation inlet/outlet (Dirichlet BC) marche lorsque le conduit est as
 Calcul en écoulement raréfié avec la MRT_Guo_2008 sans vitesse du mur (ie pas de Couette, on fait Poiseuille) et sans Wall function pour l'instant.
 Kn = 0.001, 0.1, 0.2, 0.3, 0.4, 0.5
 
-Création du MATLAB pour post-processing
+Création du MATLAB pour post- pour écoulement raréfié avec Guo_2008
 
 10/08/17
-Code DBB à faire
+Code DBB fait
+
+Code MR (specular reflection + diffuse bounceback) réalisé
 
 Wall function pour Guo_2008 à réaliser (via Numerical Recipes) car sans wall function, les valeurs ne sont pas pertinentes
+Problème dans le calcul de la wall function, l'exponentiel intégrale diverge : regarder comment est défini le MFP
