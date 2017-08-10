@@ -76,4 +76,7 @@ Kn = 0.001, 0.1, 0.2, 0.3, 0.4, 0.5
 
 Création du MATLAB pour post-processing
 
-Code DBB en cours
+10/08/17
+Code DBB à faire
+
+Wall function pour Guo_2008 à réaliser (via Numerical Recipes) car sans wall function, les valeurs ne sont pas pertinentes
