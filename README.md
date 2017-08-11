@@ -83,3 +83,9 @@ Code MR (specular reflection + diffuse bounceback) réalisé
 
 Wall function pour Guo_2008 à réaliser (via Numerical Recipes) car sans wall function, les valeurs ne sont pas pertinentes
 Problème dans le calcul de la wall function, l'exponentiel intégrale diverge : regarder comment est défini le MFP
+
+11/08/17
+Relire bien les inlet/outlet BC (equilibrium et extrapolation notamment)
+
+DBB et CBBSR : trouver les références + écrire le cheminement (théorie, implémentation en fonction des grandeurs d'intérêt etc...)
+
