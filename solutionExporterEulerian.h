@@ -14,7 +14,6 @@
 #include <string>
 #include "domain.h"
 #include "lattice.h"
-#include "parser.h"
 
 #ifndef SOLUTIONEXPORTEREULERIAN
 #define SOLUTIONEXPORTEREULERIAN // Prevents multiple definition of the same class

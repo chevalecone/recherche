@@ -1,9 +1,12 @@
 echo "compiling"
 make
 
-echo "Deleting previous results"
-rm output/*
+echo "Removing previous simulation"
+cd output
+rm *.vtk
+cd ..
 
-echo "Launching simulation anew"
+echo "Launching simulation"
 ./lbm.exe
+
 

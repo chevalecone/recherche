@@ -4,24 +4,27 @@
 #include <ctime>
 #include <stdio.h>
 
-// Library includes
-#include "tinyxml2.h"
-
 // Local includes
-#include "parser.h"
 #include "domain.h"
 #include "lattice.h"
 #include "solutionExporterEulerian.h"
 #include "function.h"
 
-double pscal(double *a,double *b,  int D) //fonction pour le produit scalaire en D dimensions
+# define M_PI  3.14159265358979323846
+
+#define EULER 0.57721566 //Constante d'Euler
+#define MAXIT 100 //Nombre maximum d'itérations
+#define FPMIN 1.0e-30
+#define EPS 6.0e-8 
+
+double pscal(double *a,double *b,  int D, double sigma) //fonction pour le produit scalaire en D dimensions
 {
-	double produit =0;
+	sigma=0;
 	for ( int i=0;i<D;i++)
 	{
-		produit+=a[i]*b[i];
+		sigma+=a[i]*b[i];
 	}
-return produit;
+return sigma;
 }
 
 void density ( int j, int Q, Lattice lat, double sigma) //fonction pour la somme des fi pour calculer la masse volumique
@@ -33,12 +36,11 @@ void density ( int j, int Q, Lattice lat, double sigma) //fonction pour la somme
 	}
 	lat.rho_[j] = sigma;
 }
-void velocity( int j, int D,  int Q, double** xi, Lattice lat)
+void velocity( int j, int D,  int Q, double** xi, Lattice lat, double sigma)
 {
-	double sigma;
 	for ( int k=0;k<D;k++)
 	{
-		sigma = 0;
+		sigma= 0;
 		for ( int i=0;i<Q;i++)
 		{
 			sigma+=lat.f_[j][i]*xi[i][k];
@@ -212,5 +214,74 @@ void bounceback_neighbour( int* bb,  int Q)
 	}
 
 }
+
+
+//Explication
+// fi,eq = rho * omega_i * (1+1/(cs*cs)*pscal(ci,u) + 1/(2*cs^4) * Qi : uu)
+// fi,eq = rho * omega_i * (1+1/(cs*cs)*pscal(ci,u) + 1/(2*cs^4) * Qeq)
+// Tout ça en D2Q9
+
+//Calcul de la double contraction Qi : uu
+void Qi_equilibre(int Q, double cs, double** xi, double*** Qi)
+{
+	for (int k=0;k<Q;k++)
+	{
+		Qi[k][0][0] = xi[k][0]*xi[k][0] - cs*cs;
+		Qi[k][0][1] = xi[k][0]*xi[k][1];
+		Qi[k][1][0] = xi[k][1]*xi[k][0];
+		Qi[k][1][1] = xi[k][1]*xi[k][1] - cs*cs;
+	}
+}
+void fi_equilibre(int Q, double*** Qi, Lattice lat, double* omega_i, double**xi, double sigma, int D, int j, double cs)
+{
+	for (int k =0;k<Q;k++)
+	{
+		double Qeq = Qi[k][0][0] * lat.u_[j][0]*lat.u_[j][0] + Qi[k][0][1] * lat.u_[j][0]*lat.u_[j][1] + Qi[k][1][0] * lat.u_[j][1]*lat.u_[j][0] + Qi[k][1][1] * lat.u_[j][1]*lat.u_[j][1];
+		lat.f0_[j][k] = lat.rho_[j] * omega_i[k] * (1+ 1/(cs*cs)*pscal(xi[k],lat.u_[j],D,sigma) + 1/(2*cs*cs*cs*cs) * Qeq);
+	}
+	
+}
+
+double Ei(double x) //Donne la valeur de Ei(x)
+{
+	int k;
+	double fact, prev, sum,term;
+
+	if(x <= 0.0) printf("Bad argument in ei");
+	if(x < FPMIN) return log(x) + EULER;
+	if(x <= -log(EPS))
+	{
+		sum = 0.0;
+		fact = 1.0;
+		for (k=1;k<=MAXIT;k++)
+		{
+			fact*=x/k;
+			term=fact/k;
+			sum+=term;
+			if(term < EPS*sum) break;
+		}
+		if (k > MAXIT) printf("Series failes in ei");
+		return sum+log(x)+EULER;
+	}
+	else
+	{
+		sum = 0.0;
+		term = 1.0;
+		for(k=1;k<=MAXIT;k++)
+		{
+			prev = term;
+			term *=k/x;
+			if (term < EPS) break;
+			if (term < prev) sum+=term;
+			else
+			{
+				sum -=prev;
+				break;
+			}
+		}
+		return exp(x)*(1.0+sum)/x;
+	}
+}
+
 
 

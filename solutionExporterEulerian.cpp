@@ -31,7 +31,6 @@
 #include "domain.h"
 #include "solutionExporterEulerian.h"
 #include "lattice.h"
-#include "parser.h"
 
 //*******************
 // STD USAGE
@@ -150,11 +149,11 @@ void writeLattice(Domain& domain, string label, int iter, Lattice lat)
         {
             file <<  lat.rho_[i] <<endl ;
         }
-        file << "VECTORS" << " " << "Vorticity" << " " << "double" <<endl;
+        /*file << "VECTORS" << " " << "Vorticity" << " " << "double" <<endl;
         for (int i=0 ; i<domain.getNTot() ; ++i)
         {
             file << lat.vorticity_[i][0] << " " << lat.vorticity_[i][1] << " " << 0. << endl ;
-        }
+        }*/
         file << "VECTORS" << " " << "Velocity" << " " << "double" <<endl;
         for (int i=0 ; i<domain.getNTot() ; ++i)
         {

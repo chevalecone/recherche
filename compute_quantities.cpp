@@ -5,11 +5,7 @@
 #include <stdio.h>
 using namespace std;
 
-// Library includes
-#include "tinyxml2.h"
-
 // Local includes
-#include "parser.h"
 #include "domain.h"
 #include "lattice.h"
 #include "solutionExporterEulerian.h"

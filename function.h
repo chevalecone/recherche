@@ -1,8 +1,11 @@
 //*************************CALCULS MACROSCOPIQUES**************************//
-double pscal(double *a,double *b,  int D);
+double pscal(double *a,double *b,  int D, double sigma);
 void density ( int j, int Q, Lattice lat, double sigma);
-void velocity( int j, int D,  int Q, double** xi, Lattice lat);
+void velocity( int j, int D,  int Q, double** xi, Lattice lat, double sigma);
 
+//***************************EQUILIBRE**************************************//
+void Qi_equilibre(int Q, double cs, double** xi, double*** Qi);
+void fi_equilibre(int Q, double*** Qi, Lattice lat, double* omega_i, double**xi, double sigma, int D, int j, double cs);
 
 //*************************GEOMETRIE DU DOMAINE**************************//
 
@@ -27,3 +30,6 @@ void SquareCylinder(double abscisse, double ordonnee, double diametre, double** 
 //Remplit typeLat pour un cylindre carré
 void typeSquare( int N, double** coin, double** position, bool* typeLat);
 
+//**************************WALL FUNCTION******************************//
+//Donne la valeur de Ei(x)
+double Ei(double x);
