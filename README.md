@@ -81,6 +81,7 @@ Code DBB fait
 
 Code MR (specular reflection + diffuse bounceback) réalisé
 
+Problème avec CBBSR et autres BC avec du glissement : le traitement en utilisant f* donne des vitesses de glissement avec un coefficient de réflexion pure (r = 1) --> considérer de travailler avec lat.f_
 Wall function pour Guo_2008 à réaliser (via Numerical Recipes) car sans wall function, les valeurs ne sont pas pertinentes
 Problème dans le calcul de la wall function, l'exponentiel intégrale diverge : regarder comment est défini le MFP
 
