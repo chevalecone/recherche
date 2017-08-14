@@ -273,19 +273,19 @@ void bounceback_N_BC( int j, int cas, Lattice lat, double** f_star)
 	switch (cas)
 	{
 		case 3: //N
-		lat.f_[j][4] = f_star[j][2];
-		lat.f_[j][8] = f_star[j][6];
-		lat.f_[j][7] = f_star[j][5];
+		lat.f_[j][4] = lat.f_[j][2];
+		lat.f_[j][8] = lat.f_[j][6];
+		lat.f_[j][7] = lat.f_[j][5];
 		break;
 		case 7: //NO
-		lat.f_[j][4] = f_star[j][2];
-		//lat.f_[j][8] = f_star[j][6];
-		lat.f_[j][7] = f_star[j][5];
+		lat.f_[j][4] = lat.f_[j][2];
+		//lat.f_[j][8] = lat.f_[j][6];
+		lat.f_[j][7] = lat.f_[j][5];
 		break;
 		case 8: //NE
-		lat.f_[j][4] = f_star[j][2];
-		lat.f_[j][8] = f_star[j][6];
-		//lat.f_[j][7] = f_star[j][5];
+		lat.f_[j][4] = lat.f_[j][2];
+		lat.f_[j][8] = lat.f_[j][6];
+		//lat.f_[j][7] = lat.f_[j][5];
 		break;
 	}
 }
@@ -294,19 +294,19 @@ void bounceback_S_BC( int j, int cas, Lattice lat, double** f_star)
 	switch (cas)
 	{
 		case 4: //S
-		lat.f_[j][2] = f_star[j][4];
-		lat.f_[j][5] = f_star[j][7];
-		lat.f_[j][6] = f_star[j][8];
+		lat.f_[j][2] = lat.f_[j][4];
+		lat.f_[j][5] = lat.f_[j][7];
+		lat.f_[j][6] = lat.f_[j][8];
 		break;
 		case 5: //SO
-		lat.f_[j][2] = f_star[j][4];
-		//lat.f_[j][5] = f_star[j][7];
-		lat.f_[j][6] = f_star[j][8];
+		lat.f_[j][2] = lat.f_[j][4];
+		//lat.f_[j][5] = lat.f_[j][7];
+		lat.f_[j][6] = lat.f_[j][8];
 		break;
 		case 6: //SE
-		lat.f_[j][2] = f_star[j][4];
-		lat.f_[j][5] = f_star[j][7];
-		//lat.f_[j][6] = f_star[j][8];
+		lat.f_[j][2] = lat.f_[j][4];
+		lat.f_[j][5] = lat.f_[j][7];
+		//lat.f_[j][6] = lat.f_[j][8];
 		break;
 	}
 }
@@ -316,19 +316,19 @@ void bounceback_E_BC( int j, int cas, Lattice lat, double** f_star)
 	switch (cas)
 	{
 		case 2://E
-		lat.f_[j][3] = f_star[j][1];
-		lat.f_[j][6] = f_star[j][8];
-		lat.f_[j][7] = f_star[j][5];
+		lat.f_[j][3] = lat.f_[j][1];
+		lat.f_[j][6] = lat.f_[j][8];
+		lat.f_[j][7] = lat.f_[j][5];
 		break;
 		case 6://S-E
-		lat.f_[j][3] = f_star[j][1];
-		lat.f_[j][6] = f_star[j][8];
-		lat.f_[j][7] = f_star[j][5];
+		lat.f_[j][3] = lat.f_[j][1];
+		lat.f_[j][6] = lat.f_[j][8];
+		lat.f_[j][7] = lat.f_[j][5];
 		break;
 		case 8://N-E
-		lat.f_[j][3] = f_star[j][1];
-		lat.f_[j][6] = f_star[j][8];
-		lat.f_[j][7] = f_star[j][5];
+		lat.f_[j][3] = lat.f_[j][1];
+		lat.f_[j][6] = lat.f_[j][8];
+		lat.f_[j][7] = lat.f_[j][5];
 		break;
 	}
 }
@@ -337,19 +337,19 @@ void bounceback_W_BC( int j, int cas, Lattice lat, double** f_star)
 	switch (cas)
 	{
 		case 1: //O
-		lat.f_[j][1] = f_star[j][3];
-		lat.f_[j][8] = f_star[j][6];
-		lat.f_[j][5] = f_star[j][7];
+		lat.f_[j][1] = lat.f_[j][3];
+		lat.f_[j][8] = lat.f_[j][6];
+		lat.f_[j][5] = lat.f_[j][7];
 		break;
 		case 5://S-O
-		lat.f_[j][1] = f_star[j][3];
-		lat.f_[j][8] = f_star[j][6];
-		lat.f_[j][5] = f_star[j][7];
+		lat.f_[j][1] = lat.f_[j][3];
+		lat.f_[j][8] = lat.f_[j][6];
+		lat.f_[j][5] = lat.f_[j][7];
 		break;
 		case 7://N-O
-		lat.f_[j][1] = f_star[j][3];
-		lat.f_[j][8] = f_star[j][6];
-		lat.f_[j][5] = f_star[j][7];
+		lat.f_[j][1] = lat.f_[j][3];
+		lat.f_[j][8] = lat.f_[j][6];
+		lat.f_[j][5] = lat.f_[j][7];
 		break;
 	}
 }
@@ -359,19 +359,19 @@ void CBBSR_N_BC(int j, int cas, Lattice lat, double r, double** f_star)
 	switch(cas)
 	{
 		case 3: //N
-		lat.f_[j][4] = f_star[j][2];
-		lat.f_[j][8] = r*f_star[j][6] + (1-r)*f_star[j][5];
-		lat.f_[j][7] = r*f_star[j][5] + (1-r)*f_star[j][6];
+		lat.f_[j][4] = lat.f_[j][2];
+		lat.f_[j][8] = r*lat.f_[j][6] + (1-r)*lat.f_[j][5];
+		lat.f_[j][7] = r*lat.f_[j][5] + (1-r)*lat.f_[j][6];
 		break;
 		case 7: //NO
-		lat.f_[j][4] = f_star[j][2];
-		lat.f_[j][8] = r*f_star[j][6] + (1-r)*f_star[j][5];
-		lat.f_[j][7] = r*f_star[j][5] + (1-r)*f_star[j][6];
+		lat.f_[j][4] = lat.f_[j][2];
+		lat.f_[j][8] = r*lat.f_[j][6] + (1-r)*lat.f_[j][5];
+		lat.f_[j][7] = r*lat.f_[j][5] + (1-r)*lat.f_[j][6];
 		break;
 		case 8: //NE
-		lat.f_[j][4] = f_star[j][2];
-		lat.f_[j][8] = r*f_star[j][6] + (1-r)*f_star[j][5];
-		lat.f_[j][7] = r*f_star[j][5] + (1-r)*f_star[j][6];
+		lat.f_[j][4] = lat.f_[j][2];
+		lat.f_[j][8] = r*lat.f_[j][6] + (1-r)*lat.f_[j][5];
+		lat.f_[j][7] = r*lat.f_[j][5] + (1-r)*lat.f_[j][6];
 		break;
 	}
 }
@@ -380,19 +380,19 @@ void CBBSR_S_BC(int j, int cas, Lattice lat, double r, double** f_star)
 	switch (cas)
 	{
 		case 4: //S
-		lat.f_[j][2] = f_star[j][4];
-		lat.f_[j][5] = r*f_star[j][7] + (1-r)*f_star[j][8];
-		lat.f_[j][6] = r*f_star[j][8]+ (1-r)*f_star[j][7];
+		lat.f_[j][2] = lat.f_[j][4];
+		lat.f_[j][5] = r*lat.f_[j][7] + (1-r)*lat.f_[j][8];
+		lat.f_[j][6] = r*lat.f_[j][8]+ (1-r)*lat.f_[j][7];
 		break;
 		case 5: //SO
-		lat.f_[j][2] = f_star[j][4];
-		lat.f_[j][5] = r*f_star[j][7] + (1-r)*f_star[j][8];
-		lat.f_[j][6] = r*f_star[j][8]+ (1-r)*f_star[j][7];
+		lat.f_[j][2] = lat.f_[j][4];
+		lat.f_[j][5] = r*lat.f_[j][7] + (1-r)*lat.f_[j][8];
+		lat.f_[j][6] = r*lat.f_[j][8]+ (1-r)*lat.f_[j][7];
 		break;
 		case 6: //SE
-		lat.f_[j][2] = f_star[j][4];
-		lat.f_[j][5] = r*f_star[j][7] + (1-r)*f_star[j][8];
-		lat.f_[j][6] = r*f_star[j][8]+ (1-r)*f_star[j][7];
+		lat.f_[j][2] = lat.f_[j][4];
+		lat.f_[j][5] = r*lat.f_[j][7] + (1-r)*lat.f_[j][8];
+		lat.f_[j][6] = r*lat.f_[j][8]+ (1-r)*lat.f_[j][7];
 		break;
 	}
 }
@@ -402,19 +402,19 @@ void extrapolation_inlet_BC(int j, int cas, Lattice lat, double** f_star)
 	switch (cas)
 	{
 		case 1: //O
-		lat.f_[j][1] = 2*f_star[j+1][1]-f_star[j+2][1];
-		lat.f_[j][8] = 2*f_star[j+1][8]-f_star[j+2][8];
-		lat.f_[j][5] = 2*f_star[j+1][5]-f_star[j+2][5];
+		lat.f_[j][1] = 2*lat.f_[j+1][1]-lat.f_[j+2][1];
+		lat.f_[j][8] = 2*lat.f_[j+1][8]-lat.f_[j+2][8];
+		lat.f_[j][5] = 2*lat.f_[j+1][5]-lat.f_[j+2][5];
 		break;
 		case 5://S-O
-		lat.f_[j][1] = 2*f_star[j+1][1]-f_star[j+2][1];
-		lat.f_[j][8] = 2*f_star[j+1][8]-f_star[j+2][8];
-		lat.f_[j][5] = 2*f_star[j+1][5]-f_star[j+2][5];
+		lat.f_[j][1] = 2*lat.f_[j+1][1]-lat.f_[j+2][1];
+		lat.f_[j][8] = 2*lat.f_[j+1][8]-lat.f_[j+2][8];
+		lat.f_[j][5] = 2*lat.f_[j+1][5]-lat.f_[j+2][5];
 		break;
 		case 7://N-O
-		lat.f_[j][1] = 2*f_star[j+1][1]-f_star[j+2][1];
-		lat.f_[j][8] = 2*f_star[j+1][8]-f_star[j+2][8];
-		lat.f_[j][5] = 2*f_star[j+1][5]-f_star[j+2][5];
+		lat.f_[j][1] = 2*lat.f_[j+1][1]-lat.f_[j+2][1];
+		lat.f_[j][8] = 2*lat.f_[j+1][8]-lat.f_[j+2][8];
+		lat.f_[j][5] = 2*lat.f_[j+1][5]-lat.f_[j+2][5];
 		break;
 	}
 }
@@ -507,19 +507,19 @@ void DBB_N_BC(int j, int cas, Lattice lat, double beta, double** f_star)
 	switch(cas)
 	{
 		case 3: //N
-		lat.f_[j][4] = beta* f_star[j][2] + (1-beta)*2/3*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
-		lat.f_[j][8] = beta* f_star[j][6] + (1-beta)*1/6*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
-		lat.f_[j][7] = beta* f_star[j][5] + (1-beta)*1/6*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
+		lat.f_[j][4] = beta* lat.f_[j][2] + (1-beta)*2/3*(lat.f_[j][2] + lat.f_[j][5] + lat.f_[j][6]);
+		lat.f_[j][8] = beta* lat.f_[j][6] + (1-beta)*1/6*(lat.f_[j][2] + lat.f_[j][5] + lat.f_[j][6]);
+		lat.f_[j][7] = beta* lat.f_[j][5] + (1-beta)*1/6*(lat.f_[j][2] + lat.f_[j][5] + lat.f_[j][6]);
 		break;
 		case 7: //NO
-		lat.f_[j][4] = beta* f_star[j][2] + (1-beta)*2/3*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
-		lat.f_[j][8] = beta* f_star[j][6] + (1-beta)*1/6*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
-		lat.f_[j][7] = beta* f_star[j][5] + (1-beta)*1/6*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
+		lat.f_[j][4] = beta* lat.f_[j][2] + (1-beta)*2/3*(lat.f_[j][2] + lat.f_[j][5] + lat.f_[j][6]);
+		lat.f_[j][8] = beta* lat.f_[j][6] + (1-beta)*1/6*(lat.f_[j][2] + lat.f_[j][5] + lat.f_[j][6]);
+		lat.f_[j][7] = beta* lat.f_[j][5] + (1-beta)*1/6*(lat.f_[j][2] + lat.f_[j][5] + lat.f_[j][6]);
 		break;
 		case 8: //NE
-		lat.f_[j][4] = beta* f_star[j][2] + (1-beta)*2/3*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
-		lat.f_[j][8] = beta* f_star[j][6] + (1-beta)*1/6*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
-		lat.f_[j][7] = beta* f_star[j][5] + (1-beta)*1/6*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
+		lat.f_[j][4] = beta* lat.f_[j][2] + (1-beta)*2/3*(lat.f_[j][2] + lat.f_[j][5] + lat.f_[j][6]);
+		lat.f_[j][8] = beta* lat.f_[j][6] + (1-beta)*1/6*(lat.f_[j][2] + lat.f_[j][5] + lat.f_[j][6]);
+		lat.f_[j][7] = beta* lat.f_[j][5] + (1-beta)*1/6*(lat.f_[j][2] + lat.f_[j][5] + lat.f_[j][6]);
 		break;
 	}
 }
@@ -528,19 +528,19 @@ void DBB_S_BC(int j, int cas, Lattice lat, double beta, double** f_star)
 		switch (cas)
 	{
 		case 4: //S
-		lat.f_[j][2] = beta* f_star[j][4] + (1-beta)*2/3*(f_star[j][4] + f_star[j][5] + f_star[j][6]);
-		lat.f_[j][5] = beta* f_star[j][7] + (1-beta)*1/6*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
-		lat.f_[j][6] = beta* f_star[j][8] + (1-beta)*1/6*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
+		lat.f_[j][2] = beta* lat.f_[j][4] + (1-beta)*2/3*(lat.f_[j][4] + lat.f_[j][5] + lat.f_[j][6]);
+		lat.f_[j][5] = beta* lat.f_[j][7] + (1-beta)*1/6*(lat.f_[j][2] + lat.f_[j][5] + lat.f_[j][6]);
+		lat.f_[j][6] = beta* lat.f_[j][8] + (1-beta)*1/6*(lat.f_[j][2] + lat.f_[j][5] + lat.f_[j][6]);
 		break;
 		case 5: //SO
-		lat.f_[j][2] = beta* f_star[j][4] + (1-beta)*2/3*(f_star[j][4] + f_star[j][5] + f_star[j][6]);
-		lat.f_[j][5] = beta* f_star[j][7] + (1-beta)*1/6*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
-		lat.f_[j][6] = beta* f_star[j][8] + (1-beta)*1/6*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
+		lat.f_[j][2] = beta* lat.f_[j][4] + (1-beta)*2/3*(lat.f_[j][4] + lat.f_[j][5] + lat.f_[j][6]);
+		lat.f_[j][5] = beta* lat.f_[j][7] + (1-beta)*1/6*(lat.f_[j][2] + lat.f_[j][5] + lat.f_[j][6]);
+		lat.f_[j][6] = beta* lat.f_[j][8] + (1-beta)*1/6*(lat.f_[j][2] + lat.f_[j][5] + lat.f_[j][6]);
 		break;
 		case 6: //SE
-		lat.f_[j][2] = beta* f_star[j][4] + (1-beta)*2/3*(f_star[j][4] + f_star[j][5] + f_star[j][6]);
-		lat.f_[j][5] = beta* f_star[j][7] + (1-beta)*1/6*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
-		lat.f_[j][6] = beta* f_star[j][8] + (1-beta)*1/6*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
+		lat.f_[j][2] = beta* lat.f_[j][4] + (1-beta)*2/3*(lat.f_[j][4] + lat.f_[j][5] + lat.f_[j][6]);
+		lat.f_[j][5] = beta* lat.f_[j][7] + (1-beta)*1/6*(lat.f_[j][2] + lat.f_[j][5] + lat.f_[j][6]);
+		lat.f_[j][6] = beta* lat.f_[j][8] + (1-beta)*1/6*(lat.f_[j][2] + lat.f_[j][5] + lat.f_[j][6]);
 		break;
 	}
 }

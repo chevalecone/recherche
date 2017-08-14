@@ -12,10 +12,10 @@
 
 # define M_PI  3.14159265358979323846
 
-#define EULER 0.57721566 //Constante d'Euler
+#define EULER 0.5772156649 //Constante d'Euler
 #define MAXIT 100 //Nombre maximum d'itérations
 #define FPMIN 1.0e-30
-#define EPS 6.0e-8 
+#define EPS 1.0e-8 
 
 double pscal(double *a,double *b,  int D, double sigma) //fonction pour le produit scalaire en D dimensions
 {
@@ -242,7 +242,7 @@ void fi_equilibre(int Q, double*** Qi, Lattice lat, double* omega_i, double**xi,
 	
 }
 
-double Ei(double x) //Donne la valeur de Ei(x)
+double Ei_small(double x) //Donne la valeur de Ei(x) pour des faibles valeurs de x
 {
 	int k;
 	double fact, prev, sum,term;
@@ -281,6 +281,68 @@ double Ei(double x) //Donne la valeur de Ei(x)
 		}
 		return exp(x)*(1.0+sum)/x;
 	}
+}
+
+double Ei_big(int n, double x)//Donne la valeur de Ei(x) pour des grandes valeurs de x
+{
+	int i,ii,nm1;
+	double a,b,c,d,del,fact,h,psi,ans;
+	nm1=n-1;
+	if (n < 0 || x < 0.0 || (x==0.0 && (n==0 || n==1)))
+	printf("bad arguments in expint");
+	else 
+	{
+		if (n == 0) ans=exp(-x)/x;
+		else 
+	    {
+			if (x == 0.0) ans=1.0/nm1;
+			else 
+			{
+				if (x > 1.0) 
+				{
+					b=x+n;
+					c=1.0/FPMIN;
+					d=1.0/b;
+					h=d;
+					for (i=1;i<=MAXIT;i++)
+					{
+						a = -i*(nm1+i);
+						b += 2.0;
+						d=1.0/(a*d+b);
+						c=b+a/c;
+						del=c*d;
+						h *= del;
+						if (fabs(del-1.0) < EPS) 
+						{
+							ans=h*exp(-x);
+							return ans;
+						}
+					}
+					printf("continued fraction failed in expint");
+				} 
+				else 
+				{
+					ans = (nm1!=0 ? 1.0/nm1 : -log(x)-EULER);
+					fact=1.0;
+					for (i=1;i<=MAXIT;i++)
+					{
+						fact *= -x/i;
+						if (i != nm1) del = -fact/(i-nm1);
+						else
+						{
+							psi = -EULER;
+							for (ii=1;ii<=nm1;ii++) psi += 1.0/ii;
+							del=fact*(-log(x)+psi);
+						}
+						ans += del;
+						if (fabs(del) < fabs(ans)*EPS) return ans;
+					}
+					printf("series failed in expint");
+				}
+			}
+		}
+	}
+	return ans;
 }
 
 

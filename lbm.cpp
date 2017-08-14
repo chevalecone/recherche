@@ -24,20 +24,19 @@
 
 //Variables de la simulation
 # define RHO 1
-# define MU 0.025
+# define MU 0.01
 # define DX 1
 # define dRHO 1.00001
 # define dFi 0.0000001
 # define R 1
 # define BETA 1
-# define KNU 0.388
+# define KNU 0.1128
 # define XMIN 0
-# define XMAX 5
+# define XMAX 50
 # define YMIN 0
-# define YMAX 100
-# define OUTPUT 10000
+# define YMAX 128
+# define OUTPUT 1000
 # define PRECISION 0.0000000001
-
 int main(int argc, char *argv[])
 {
 	//*******************************CREATION DU DOMAINE A L'AIDE DU FICHIER XML******************************//
@@ -82,7 +81,6 @@ int main(int argc, char *argv[])
 
 	// Information sur la boucle temporelle
 	int it = 0;
-    //double dt=dx; //Calcul du pas de temps;
     double dt = dx;
 
    
@@ -101,7 +99,10 @@ int main(int argc, char *argv[])
 
 	//Célérité de la lattice, Re, Vitesse max, variables pour la convergence en temps, force de drag et lift	
 	double cs = 1/sqrt(3)*xi_r,Re,Umax,Umax2,valeur1=0,valeur2=0,erreur=1,df,lf,sigma,nombre,w_time=0,Mach;
-	double* PHI = new double[N];
+	double* PHI = new double[N]; //Les wall function pour chaque lattice
+	double** rank = new double*[N];
+	double* tau1 = new double[N];// Temps de relaxation tau_s pour chaque lattice avec wall function
+	double* coeff_r = new double[N];
 	double* temp = new double[2];
 	double* temp2 = new double[3];
 	double **f_star = new double*[N]; //Matrice temporaire f* entre t et t+dt (collisions)
@@ -123,8 +124,6 @@ int main(int argc, char *argv[])
 
 	//Cas avec terme de forçage
 	double *Fi = new double[D]; //Terme de forçage
-
-	//Matrice des xi
 	 for (i=0;i<Q;i++)
 	{
 		xi[i]=new double[D];
@@ -137,6 +136,7 @@ int main(int argc, char *argv[])
 	//Matrice des f_star,S
 	for (j=0;j<N;j++)
 	{
+		rank[j] = new double[2]; 
 		f_star[j] = new double[Q];
 		typeLat[j] = false; //Initialement, tous les noeuds sont fluides
 		position[j] = new double[D];
@@ -151,11 +151,11 @@ int main(int argc, char *argv[])
 	localisation(nx,ny,dx,position); //Coordonnées de chaque noeud
 	domainCondition(nx,ny,cas);	//Cas pour les BC aux frontières du domaine
 	Qi_equilibre(Q,cs,xi,Qi);
-
+	rang(ny,dx,nx,rank);
 
 //******************* PHENOMENES PHYSIQUES MOTEURS DE L'ECOULEMENT **************************//
 	//Initialisation du terme de forçage (dans le cas de conditions périodiques)
-	Fi[0]=0.0000001;
+	Fi[0]=0.00001;
 	Fi[1]=0; //Gravité uniquement verticale selon -y
 
 	//Gradient de pression (tout en gardant l'hypothèse incompressible)
@@ -186,25 +186,18 @@ int main(int argc, char *argv[])
 	double tau_q = temp2[2];
 	double r = temp2[0];
 	double beta = temp2[0];
-
-	//temp2 = MRT_Continuous(cs,dt,nu);
-
-
-	/*temp2 = MRT_Guo_2008(Kn,ymax,tau_s,tau_q,r,dx);
+	
+	/*temp2 = MRT_Continuous(cs,dt,nu);*/
+	PHI_Guo_2008(Kn,ymax,dx,PHI,position, mu, rho0, cs, N, rank);
+	temp2 = MRT_Guo_2008(Kn,ymax,tau_q,r,dx,N,rank, PHI);
 	r = temp2[0];
 	printf("r : %f\n",r);
-	PHI_Guo_2008(Kn,ymax,N,dx,PHI,position, mu, rho0, cs);
-	for (int i =0;i<N;i++)
-	{
-		printf("Lattice %d, ordonnée %f,  PHI : %.3f\n",i,position[i][1],PHI[i]);
-	}*/
-	
-	//mu = sqrt(2/(3*M_PI))*Kn*ymax/dx;
+	/*mu = sqrt(2/(3*M_PI))*Kn*ymax/dx;
 	nu = mu/rho0;
 	temp2 = MRT_Verhaeghe_2009(Kn,ymax,tau_s,tau_q,beta,mu,dx,dt,cs);
 	beta = temp2[0];
-	printf("beta : %f\n",beta);
-
+	printf("beta : %f\n",beta);*/
+	
 	tau_s = temp2[1];
 	tau_q = temp2[2];
 	
@@ -212,7 +205,8 @@ int main(int argc, char *argv[])
 	printf("tau_q : %f\n",tau_q);
 	
 
-	Umax = Fi[0]*ymax*ymax/(8*nu);//Avec body force
+	Umax = Fi[0]*3*sqrt(M_PI)*nu/Kn;
+	//Umax = Fi[0]*ymax*ymax/(8*nu);//Avec body force
 	//Umax = ymax*ymax*(rho_in-rho_out)*cs*cs/(8*nu*xmax); //Vitesse max pour gradient de pression
 	Re = Umax * ymax/nu;
 	Mach = Umax/cs;
@@ -221,7 +215,7 @@ int main(int argc, char *argv[])
 	printf("Erreur d'arrêt : %f\n", error);
 	printf("nu = %f\n",nu);
 	printf("Re %f\n", Re);
-	printf("Umax %f\n", Umax);
+	printf("Umax %.8f\n", Umax);
 	printf("Ma %f\n",Mach);
 	printf("Nombre de lattices : %d\n",N);  
 	printf("s_nu (entre 0 et 2) : %f\n",1/tau_s);
@@ -230,47 +224,92 @@ int main(int argc, char *argv[])
 	/* std:: cout << "  Number of processors available = " << omp_get_num_procs ( ) << "\n"<< std::endl;
 	  std ::cout << "  Number of threads =              " << omp_get_max_threads ( ) << "\n" <<std::endl;*/
 //********************INITIALISATION MRT********************************************//
-	double**  M = MRT_matrice_passage(Q); //Matrice de passage des populations aux moments
-	double** Si = MRT_S(Q,nu,cs,dt,tau_s, tau_q); //Matrice de relaxation
-	double** invM = new double*[Q]; //Matrice de l'inverse de M
-	double** C = new double*[Q]; //Matrice du produit matriciel M-1 * Si
-	double** C1 = new double*[Q]; // Matrice I-0.5*S
-	double** C2 = new double*[Q]; //Matrice M-1 * (I-0.5*S) = invM * C1
-	double** C3 = new double*[Q]; //Matrice M-1 * (I-0.5*S)* M = C2 * M
-	//Matrices avec body force
-	double** F_bar = new double*[N];
-	double** F = new double*[N];
-	for (int i=0;i<Q;i++)
+double**  M = MRT_matrice_passage(Q); //Matrice de passage des populations aux moments
+double** invM = new double*[Q]; //Matrice de l'inverse de M		
+for (int i=0;i<Q;i++)
 	{
 		invM[i] = new double[Q];
-		C[i] = new double[Q];
-		C1[i] = new double[Q];
-		C2[i] = new double[Q];
-		C3[i] = new double[Q];
 	}
-	for (int i=0;i<N;i++)
+MatrixInversion(M,Q,invM);
+//Matrices avec body force
+double** F_bar = new double*[N];
+double** F = new double*[N];
+for (int i=0;i<N;i++)
 	{
 		F[i] = new double[Q];
 		F_bar[i] = new double[Q];
-	}
-	MatrixInversion(M,Q,invM);
-	matrix_product(invM,Si,C,Q);
-	
-	for (int i=0;i<Q;i++)
+	}	
+				//********SANS WALL FUNCTION*********//
+/*double** Si = MRT_S(Q,nu,cs,dt,tau_s, tau_q); //Matrice de relaxation			
+double** C = new double*[Q]; //Matrice du produit matriciel M-1 * Si
+double** C1 = new double*[Q]; // Matrice I-0.5*S
+double** C2 = new double*[Q]; //Matrice M-1 * (I-0.5*S) = invM * C1
+double** C3 = new double*[Q]; //Matrice M-1 * (I-0.5*S)* M = C2 * M			
+for (int i=0;i<Q;i++)
+{
+	C[i] = new double[Q];
+	C1[i] = new double[Q];
+	C2[i] = new double[Q];
+	C3[i] = new double[Q];
+}
+matrix_product(invM,Si,C,Q);
+for (int i=0;i<Q;i++)
+{
+	for (int j=0;j<Q;j++)
 	{
-		for (int j=0;j<Q;j++)
-		{
-			C1[i][j] = 0;
-		}
-		C1[i][i] = 1-0.5*Si[i][i];
+		C1[i][j] = 0;
 	}
-	matrix_product(invM,C1,C2,Q);
-	matrix_product(C2,M,C3,Q);
-
-	//AFFICHAGE MATRICES
-	//affichage_matrix(Q,M,invM,Si,C,C3);
-
-
+	C1[i][i] = 1-0.5*Si[i][i];
+}
+matrix_product(invM,C1,C2,Q);
+matrix_product(C2,M,C3,Q);
+//AFFICHAGE MATRICES
+affichage_matrix(Q,M);	
+affichage_matrix(Q,invM);	
+affichage_matrix(Q,Si);	
+affichage_matrix(Q,C);	
+affichage_matrix(Q,C3);	*/	
+				
+				//*******AVEC WALL FUNCTION*********//
+//Différence sans/avec : tau_s dépend de la lattice avec wall function, chaque lattice 
+//a sa propre matrice de relaxation
+	
+double*** Si_wall = new double**[N];
+double*** C_wall = new double**[N]; //Matrice du produit matriciel M-1 * Si
+double*** C1_wall = new double**[N]; // Matrice I-0.5*S
+double*** C2_wall = new double**[N]; //Matrice M-1 * (I-0.5*S) = invM * C1
+double*** C3_wall = new double**[N]; //Matrice M-1 * (I-0.5*S)* M = C2 * M	
+for (int i=0;i<N;i++)
+{
+	Si_wall[i] = MRT_S(Q,nu,cs,dt,rank[i][1], tau_q);
+	C_wall[i] = new double*[Q];
+	C1_wall[i] = new double*[Q];
+	C2_wall[i] = new double*[Q];
+	C3_wall[i] = new double*[Q];
+	for (int j=0;j<Q;j++)
+	{
+		C_wall[i][j] = new double[Q];
+		C1_wall[i][j] = new double[Q];
+		C2_wall[i][j] = new double[Q];
+		C3_wall[i][j] = new double[Q];
+	}
+	matrix_product(invM,Si_wall[i],C_wall[i],Q);
+	for (int j=0;j<Q;j++)
+	{
+		C1_wall[i][j] = new double[Q];
+		for (int k=0;k<Q;k++)
+		{
+			C1_wall[i][j][k] = 0;
+		}
+		C1_wall[i][j][j] = 1-0.5*Si_wall[i][j][j];
+	}
+	matrix_product(invM,C1_wall[i],C2_wall[i],Q);
+	matrix_product(C2_wall[i],M,C3_wall[i],Q);
+}
+/*for (int i=0;i<N;i++)
+{
+	printf("Lattice %d, ordonnée %f, PHI %f, tau_s %f, tau_q %f\n",i,rank[i][0],PHI[i],1/Si_wall[i][7][7],1/Si_wall[i][4][4]);
+}*/
 //*************************INITIALISATION DU DOMAINE******************************************//
 for (j=0;j<N;j++)
 {	
@@ -297,11 +336,18 @@ for (j=0;j<N;j++)
 		f_star[j][k]  = lat.f_[j][k]-1/tau*(lat.f_[j][k]-lat.f0_[j][k]); //SRT
 	}
 	MRT_equilibre(j,lat,M);
+	
+	//MRT_moment(j,lat,M,Q,temp);
+	//MRT_forcing(j,k,cs,omega_i,xi,Fi,F_bar,lat,temp);
+	//MRT_collision(j,f_star,C,lat,Q,dt,temp);
+	//MRT_forcing_collision(j,f_star,C,lat,dt,F,C3,F_bar,Q,temp);
+	
 	MRT_moment(j,lat,M,Q,temp);
 	MRT_forcing(j,k,cs,omega_i,xi,Fi,F_bar,lat,temp);
-	//MRT_collision(j,f_star,C,lat,Q,dt,temp);
-	MRT_forcing_collision(j,f_star,C,lat,dt,F,C3,F_bar,Q,temp);
+	//MRT_collision(j,f_star,C_wall[N],lat,Q,dt,temp);
+	MRT_forcing_collision(j,f_star,C_wall[j],lat,dt,F,C3_wall[j],F_bar,Q,temp);
 }		
+	
 
 
 
@@ -319,30 +365,34 @@ while((erreur>error || erreur<-error))
         	//pression_out_BC( j,cas[j],lat,xi_r,rho_out);
         	//equilibrium_inlet_BC(j,cas[j],lat,rho_in,cs,omega_i,xi,Q,nx);
         	//equilibrium_outlet_BC(j,cas[j],lat,rho_out,cs,omega_i,xi,Q);
-        	periodic_WE_BC(j,nx,ny,cas[j],lat,f_star);
-        	DBB_N_BC(j,cas[j],lat,r,f_star);
-        	DBB_S_BC(j,cas[j],lat,r,f_star);
-
+        	//DBB_N_BC(j,cas[j],lat,r,f_star);
+        	//DBB_S_BC(j,cas[j],lat,r,f_star);
+			periodic_WE_BC(j,nx,ny,cas[j],lat,f_star);
         	//bounceback_N_BC(j,cas[j],lat,f_star);
         	//bounceback_S_BC(j,cas[j],lat,f_star);
-		/*}	
+			
+		}	
        	for (j=0 ; j<N ; j++)
         {
         	CBBSR_N_BC(j,cas[j],lat,r,f_star);
 			CBBSR_S_BC(j,cas[j],lat,r,f_star);	
 		}
 		for (j=0 ; j<N ; j++)
-        {*/
+        {
 			
 			density(j,Q,lat,sigma); 
 			velocity(j,D,Q,xi,lat,sigma);
 			MRT_equilibre(j,lat,M); //Calcul des moments d'équilibre
-			MRT_moment(j,lat,M,Q,temp); //Calcul des moments
-			MRT_forcing(j,Q,cs,omega_i,xi,Fi,F_bar,lat,temp);
-			//ETAPE DE COLLISION
+			
+			//MRT_moment(j,lat,M,Q,temp); //Calcul des moments
+			//MRT_forcing(j,Q,cs,omega_i,xi,Fi,F_bar,lat,temp);
 			//MRT_collision(j,f_star,C,lat,Q,dt,temp);
-
-			MRT_forcing_collision(j,f_star,C,lat,dt,F,C3,F_bar,Q,temp);
+			//MRT_forcing_collision(j,f_star,C,lat,dt,F,C3,F_bar,Q,temp);
+			
+			MRT_moment(j,lat,M,Q,temp);
+			MRT_forcing(j,k,cs,omega_i,xi,Fi,F_bar,lat,temp);
+			//MRT_collision(j,f_star,C_wall[N],lat,Q,dt,temp);
+			MRT_forcing_collision(j,f_star,C_wall[j],lat,dt,F,C3_wall[j],F_bar,Q,temp);
         }
 	
 	

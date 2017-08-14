@@ -32,4 +32,5 @@ void typeSquare( int N, double** coin, double** position, bool* typeLat);
 
 //**************************WALL FUNCTION******************************//
 //Donne la valeur de Ei(x)
-double Ei(double x);
+double Ei_small(double x);
+double Ei_big(int n, double x);

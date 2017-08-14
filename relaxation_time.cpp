@@ -164,8 +164,8 @@ double** MRT_S(int Q, double nu, double cs, double dt, double tau_s, double tau_
 	}
 	
 	matrix[0][0] = 1;
-	matrix[1][1] = 1.1;
-	matrix[2][2] = 1.2;
+	matrix[1][1] = 1.4;
+	matrix[2][2] = 1.4;
 	matrix[3][3] = 1;
 	matrix[5][5] = 1;
 
@@ -388,54 +388,15 @@ void MRT_forcing(int j, int Q, double cs, double* omega_i, double** xi, double* 
 */
 }
 
-void affichage_matrix(int Q, double** M, double** invM, double** Si, double** C, double** C3)
+void affichage_matrix(int Q, double** matrix)
 {
-	printf("Matrice de passage : \n");
 	for (int i =0;i<Q;i++)
 	{
 		for (int j=0;j<Q;j++)
 		{
-			printf("%0.0f \t",M[i][j]);
+			printf("%.3f \t",matrix[i][j]);
 		}
 		printf("\n");
 	}
-	
-	printf("Matrice inverse de passage : \n");
-	for (int i =0;i<Q;i++)
-	{
-		for (int j=0;j<Q;j++)
-		{
-			printf("%0.3f \t",invM[i][j]);
-		}
-		printf("\n");
-	}
-	
-	printf("Matrice de relaxation : \n");
-	for (int i =0;i<Q;i++)
-	{
-		for (int j=0;j<Q;j++)
-		{
-			printf("%0.3f \t",Si[i][j]);
-		}
-		printf("\n");
-	}
-	
-	printf("Matrice du produit M-1 * S : \n");
-	for (int i =0;i<Q;i++)
-	{
-		for (int j=0;j<Q;j++)
-		{
-			printf("%0.3f \t",C[i][j]);
-		}
-		printf("\n");
-	}
-	printf("Matrice du produit M-1 * (I-0.5*S)* M : \n");
-	for (int i =0;i<Q;i++)
-	{
-		for (int j=0;j<Q;j++)
-		{
-			printf("%0.3f \t",C3[i][j]);
-		}
-		printf("\n");
-	}
+
 }

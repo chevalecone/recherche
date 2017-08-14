@@ -10,8 +10,6 @@ double** MRT_matrice_passage(int Q); //Matrice de passage des populations aux mo
 double** MRT_S(int Q, double nu, double cs, double dt, double tau_s, double tau_q); //Matrice de relaxation
 void matrix_product(double **A, double **B,double **C,  int Q); //Produit matriciel
 
-//Affichage matrice
-void affichage_matrix(int Q, double** M, double** invM, double** Si, double** C, double** C3);
 
 //Utiles pour calculer l'inverse d'une matrice
 void MatrixInversion(double **A, int order, double **Y);
@@ -19,3 +17,6 @@ int GetMinor(double **src, double **dest, int row, int col, int order);
 double CalcDeterminant( double **mat, int order);
 //*****************************TRT************************************//
 void TRT_creation(int j, Lattice lat, double** f_minus, double** f_plus, double** f0_plus, double** f0_minus, int* bb, int Q);
+
+//Affichage matrice
+void affichage_matrix(int Q, double** matrix);
