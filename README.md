@@ -89,3 +89,9 @@ Relire bien les inlet/outlet BC (equilibrium et extrapolation notamment)
 
 DBB et CBBSR : trouver les références + écrire le cheminement (théorie, implémentation en fonction des grandeurs d'intérêt etc...)
 
+14/08/17
+Retour à Guo-2008_MRT : implantation de l'intégrale exponentielle de "Numerical Recipes" fructueux avec la première expression, les valeurs de PHI sont entre 0 et 1.
+
+Revue rapide des différentes solutions analytique des vitesses de glissement, et des profils de Poiseuille (premier et second ordre)
+
+Création d'une structure donnant grâce à l'ordonnée de la lattice, le rang dans lequel elle est et donc la valeur du wall function associée, et donc le temps de relaxation, les matrices de relaxation etc...
