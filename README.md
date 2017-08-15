@@ -101,3 +101,6 @@ Retour à Guo-2008_MRT : implantation de l'intégrale exponentielle de "Numerica
 Revue rapide des différentes solutions analytique des vitesses de glissement, et des profils de Poiseuille (premier et second ordre)
 
 Création d'une structure donnant grâce à l'ordonnée de la lattice, le rang dans lequel elle est et donc la valeur du wall function associée, et donc le temps de relaxation, les matrices de relaxation etc...
+
+15/08/17
+Guo_MRT fini : étude de profil de vitesse axiale, débit massique réalisé
