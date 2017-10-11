@@ -112,3 +112,4 @@ Néanmoins, les paramètres (coefficient de CBBSR/DBB et temps de relaxation tau
 Condition limite régularisée implémentée en MRT pour les écoulements continus (comparaison avec un simple écoulement de Poiseuille)
 Ecriture d'un artcicle à considérer par rapport à la comparaison entre DBB et CBBSR en utilisant wall function, tau_s et tau_q dépendant de Kn et en MRT --> Revue de littérature, voir ce qui existe ou non, dans quels journaux publier, puis faire un squelette d'article.
 Perméabilité : article de référence : Jeong-2006 pour les résultats simplement en régime continu, calcul de la perméabilité en fonction des différentes structures (square/cylinder et in-line/staggered) et en fonction du Re, de Kn et de la porosité.
+Utilisation des résultats de Mostafavi-2016 également
