@@ -104,3 +104,11 @@ Création d'une structure donnant grâce à l'ordonnée de la lattice, le rang d
 
 15/08/17
 Guo_MRT fini : étude de profil de vitesse axiale, débit massique réalisé
+
+10/11/2017
+Etude des écoulements raréfiés terminée : Guo_DBB ou Guo_CBBSR équivalent, les coefficients proposés respectivement par Guo_2008 et Guo_2011 donne des résultats proches des résultats de comparaison d'Ohwada (1989, Boltzmann linéarisé).
+La wall function de Stops permet d'obtenir un profil de vitesse (et donc un débit) proche des résultats d'Ohwada.
+Néanmoins, les paramètres (coefficient de CBBSR/DBB et temps de relaxation tau_s et tau_q) dépendent des coefficients des vitesses de glissement provenant de la résolution de l'équation de Boltzmann (premier et second ordre), et ces coefficients de la vitesse de glissement ont été déterminés avec une fitting curve. Ceci donne des résultats différents (pour le profil de vitesse) en comparant avec la DSMC (par exemple) 
+Condition limite régularisée implémentée en MRT pour les écoulements continus (comparaison avec un simple écoulement de Poiseuille)
+Ecriture d'un artcicle à considérer par rapport à la comparaison entre DBB et CBBSR en utilisant wall function, tau_s et tau_q dépendant de Kn et en MRT --> Revue de littérature, voir ce qui existe ou non, dans quels journaux publier, puis faire un squelette d'article.
+Perméabilité : article de référence : Jeong-2006 pour les résultats simplement en régime continu, calcul de la perméabilité en fonction des différentes structures (square/cylinder et in-line/staggered) et en fonction du Re, de Kn et de la porosité.
