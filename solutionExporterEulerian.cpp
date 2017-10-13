@@ -31,7 +31,6 @@
 #include "domain.h"
 #include "solutionExporterEulerian.h"
 #include "lattice.h"
-#include "parser.h"
 
 //*******************
 // STD USAGE
@@ -117,12 +116,18 @@ void writeVector(Domain& domain, string label, int iter, double** vector)
     }
 }
 
-void writeLattice(Domain& domain, string label, int iter, Lattice lat)
+void writeLattice(Domain& domain, string label, double Kn,char name, int iter, Lattice lat)
 {
     ostringstream oss;
 
     // Write iteration number to flux
+	oss << "square_stag_0.6636";
+	oss << "_";
     oss << iter;
+	oss << "_";
+	oss << Kn;
+	//oss << "_";
+	//oss << "Guo";
 
     // Establish the file name
     string filename = "output/"+label+"_"+oss.str()+".vtk";
@@ -150,11 +155,11 @@ void writeLattice(Domain& domain, string label, int iter, Lattice lat)
         {
             file <<  lat.rho_[i] <<endl ;
         }
-        file << "VECTORS" << " " << "Vorticity" << " " << "double" <<endl;
+        /*file << "VECTORS" << " " << "Vorticity" << " " << "double" <<endl;
         for (int i=0 ; i<domain.getNTot() ; ++i)
         {
             file << lat.vorticity_[i][0] << " " << lat.vorticity_[i][1] << " " << 0. << endl ;
-        }
+        }*/
         file << "VECTORS" << " " << "Velocity" << " " << "double" <<endl;
         for (int i=0 ; i<domain.getNTot() ; ++i)
         {

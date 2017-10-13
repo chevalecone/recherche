@@ -1,25 +1,34 @@
-CC = g++
-CFLAGS = -std=c++11 -O2 -fstrict-aliasing -Wall -W -Wno-uninitialized 
-EXEC_NAME = lbm
-INCLUDES = 
-LIBS = libtinyxml2.a
-OBJ_FILES = lbm.o  domain.o parser.o tinyxml2.o solutionExporterEulerian.o lattice.o function.o geometry.o boundaryc.o compute_quantities.o relaxation_time.o
+SOURCES= lbm.cpp domain.cpp solutionExporterEulerian.cpp lattice.cpp function.cpp geometry.cpp boundaryc.cpp compute_quantities.cpp relaxation_time.cpp rarefied_models.cpp
 
-all : staticlib $(EXEC_NAME)
+OBJECTS=$(SOURCES:.cpp=.o)
 
-staticlib: $(LIBS)
+CC=g++
+LIBS=
+LIB_PATHS=
+INCLUDE_PATHS=
+CFLAGS=-O2 -std=c++11 -Wall	 -W -Wno-uninitialized -fstrict-aliasing
 
-libtinyxml2.a: tinyxml2.o
-	$(AR) $(ARFLAGS)s $@ $^
+EXECUTABLE=lbm
 
-clean :
-	rm $(EXEC_NAME) $(OBJ_FILES) 
+MAKE_CMD=$(CC) $(CFLAGS) -o $(EXECUTABLE) $(OBJECTS) $(LIB_PATHS) $(INCLUDE_PATHS) $(LIBS) 
 
-$(EXEC_NAME) : $(OBJ_FILES)
-	$(CC) -o $(EXEC_NAME) $(OBJ_FILES) $(LIBS)
+all: $(SOURCES) $(EXECUTABLE)
 
-%.o: %.cpp
-	$(CC) $(CFLAGS) $(INCLUDES) -o $@ -c $<
+$(EXECUTABLE): $(OBJECTS)
+	$(MAKE_CMD)
 
-install :
-	make
+.cpp.o:
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+remake:
+	rm $(EXECUTABLE)
+	$(MAKE_CMD)
+
+clean:
+	rm $(EXECUTABLE)
+	rm $(OBJECTS)
+
+omp: lbm.o  domain.o solutionExporterEulerian.o lattice.o function.o geometry.o boundaryc.o compute_quantities.o relaxation_time.o rarefied_models.o
+	$(CC) $(CFLAGS) -o lbm lbm.o  domain.o solutionExporterEulerian.o lattice.o function.o geometry.o boundaryc.o compute_quantities.o relaxation_time.o rarefied_models.o $(LIB_PATHS) $(INCLUDE_PATHS) $(LIBS) 
+
+

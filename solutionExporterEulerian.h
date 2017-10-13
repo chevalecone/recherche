@@ -14,12 +14,11 @@
 #include <string>
 #include "domain.h"
 #include "lattice.h"
-#include "parser.h"
 
 #ifndef SOLUTIONEXPORTEREULERIAN
 #define SOLUTIONEXPORTEREULERIAN // Prevents multiple definition of the same class
   void writeScalar(Domain&, std::string, int, double*); // write a scalar variable
   void writeVector(Domain&, std::string, int, double**); // write a vector variable
-  void writeLattice(Domain&, std::string, int, Lattice); // write a vector variable
+  void writeLattice(Domain&, std::string, double, char, int, Lattice); // write a vector variable
   void writeTimeScalar(std::string,int, double**);
 #endif

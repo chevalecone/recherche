@@ -5,9 +5,6 @@
 #include <stdio.h>
 #include <algorithm>
 
-// Library includes
-#include "tinyxml2.h"
-
 // Local includes
 #include "lattice.h"
 #include "macroscopic_variables.h"

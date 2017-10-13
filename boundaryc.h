@@ -1,7 +1,9 @@
 
 #include "lattice.h"
-void propagation( int const& j, Lattice lat, double** f_star,int nx, int ny, int* cas,bool* typeLat, int** conn);
-void solidPropagation( int j, int nx, int ny , int cas, Lattice lat, double** f_star); 
+#include "function.h"
+
+void propagation( int const& j, Lattice lat, double** f_star,bool* typeLat, int** conn, int* bb, int Q);
+ 
 
 void periodic_WE_BC( int j,int nx, int ny,  int cas, Lattice lat, double** f_star);
 void periodic_NS_BC( int j,int nx, int ny,  int cas, Lattice lat, double** f_star);
@@ -12,13 +14,8 @@ void bounceback_S_BC( int j, int cas, Lattice lat, double** f_star);
 void bounceback_E_BC( int j, int cas, Lattice lat, double** f_star);
 void bounceback_W_BC( int j, int cas, Lattice lat, double** f_star);
 
-void bounceback_N_Collision(int j, int cas, Lattice lat, double** f_star);
-void bounceback_S_Collision(int j, int cas, Lattice lat, double** f_star);
-void bounceback_E_Collision(int j, int cas, Lattice lat, double** f_star);
-void bounceback_W_Collision(int j, int cas, Lattice lat, double** f_star);
-
 //SOLIDES
-void bounceback_solid_BC( int nx,int const& j, Lattice lat, double** f_star, int** const& conn, bool* typeLat,  int* const& bb, double& nombre, int* pos);
+void bounceback_solid_BC( int nx,int const& j, Lattice lat, double** f_star, int** const& conn, bool* typeLat,  int* const& bb, double& nombre, int* pos, int cas);
 
 //Special BC for lid-driven cavity
 void driven_cavity_nord( int j,  int cas, Lattice lat, double xi_r,double v_e);
@@ -29,3 +26,21 @@ void pression_out_BC(int j, int cas, Lattice lat, double xi_r,double rho_out);
 void vitesse_in_BC( int j,int nx, int cas, Lattice lat, double xi_r,double** v_in);
 void vitesse_out_BC( int j,int nx, int cas, Lattice lat, double xi_r,double** v_out);
 
+//COMBINED BOUNCE-BACK SPECULAR REFLECTION (CBBSR)
+void CBBSR_N_BC(int j, int cas, Lattice lat, double r, double** f_star);
+void CBBSR_S_BC(int j, int cas, Lattice lat, double r, double** f_star);
+
+
+//DIFFUSE BOUNCE-BACK (DBB) non automatisé (ie. simplifié pour le D2Q9) avec une vitesse u_wall nulle
+void DBB_N_BC(int j, int cas, Lattice lat, double beta, double** f_star);
+void DBB_S_BC(int j, int cas, Lattice lat, double beta, double** f_star);
+
+//COMBINED SPECULAR AND DIFFUSIVE REFLECTION (MR)
+void MR_N_BC(int j, int cas, Lattice lat, double beta, double** f_star);
+void MR_S_BC(int j, int cas, Lattice lat, double beta, double** f_star);
+
+//REGULARIZED BOUNDARY CONDITION
+void regularized_BC_v_inlet(int j,int k,Lattice lat,double cs,double** v_in, int nx,double** xi,int D,double*** Qi, double* buffer, double* omega_i,int cas,double** Pi_neq,int Q, double** f_neq, int* bb, double sigma);
+void regularized_BC_p_inlet(int j,int k,Lattice lat,double cs,double rho_in,double** xi,int D,double*** Qi, double* buffer, double* omega_i,int cas,double** Pi_neq,int Q, double** f_neq, int* bb, double sigma);
+void regularized_BC_v_outlet(int j,int k,Lattice lat,double cs,double** v_out, int nx,double** xi,int D,double*** Qi, double* buffer, double* omega_i,int cas,double** Pi_neq,int Q, double** f_neq, int* bb, double sigma);
+void regularized_BC_p_outlet(int j,int k,Lattice lat,double cs,double rho_out,double** xi,int D,double*** Qi, double* buffer, double* omega_i,int cas,double** Pi_neq,int Q, double** f_neq, int* bb, double sigma);

@@ -5,11 +5,7 @@
 #include <stdio.h>
 using namespace std;
 
-// Library includes
-#include "tinyxml2.h"
-
 // Local includes
-#include "parser.h"
 #include "domain.h"
 #include "lattice.h"
 #include "solutionExporterEulerian.h"
@@ -17,7 +13,7 @@ using namespace std;
 #include "compute_quantities.h"
 
 
-double drag_force( int Q, int nx,int ny, double** f_star, double xi_r, bool* typeLat, int** conn, double** xi,  int* bb,  int* pos, Lattice lat)
+double drag_force( int Q, bool* typeLat, int** conn, double** xi,  int* bb,  int* pos, Lattice lat)
 {
 	double dforce =0; //drag force
 
@@ -35,7 +31,7 @@ double drag_force( int Q, int nx,int ny, double** f_star, double xi_r, bool* typ
 		return dforce;
 }
 
-double lift_force( int Q, int nx,int ny, double** f_star, double xi_r, bool* typeLat, int** conn, double** xi,  int* bb,  int* pos)
+double lift_force( int Q, bool* typeLat, int** conn, double** xi,  int* bb,  int* pos, Lattice lat)
 {
 	double lforce =0; //drag force
 
@@ -46,14 +42,14 @@ double lift_force( int Q, int nx,int ny, double** f_star, double xi_r, bool* typ
 			if(!typeLat[conn[j][k]] && typeLat[j])///Si le voisin est un noeud fluide et qu'on est sur un noeud solide
 													   //alors on peut appliquer le calcul
 			{
-				lforce+=xi[k][1]*(f_star[j][k]+f_star[j][bb[k]]);
+				lforce+=xi[k][1]*(lat.f_[conn[j][k]][k]+lat.f_[conn[j][k]][bb[k]]);
 			}
 		}
 	}
 		return lforce;
 }
 
-void vorticite(int Q, int nx,int ny, Lattice lat, int* cas,double dx, bool* typeLat, int** conn)
+void vorticite(int nx,int ny, Lattice lat,double dx, bool* typeLat, int** conn)
 {
 	for (int j=0;j<nx*ny;j++)
 	{

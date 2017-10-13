@@ -4,16 +4,14 @@
 #include <ctime>
 #include <stdio.h>
 
-// Library includes
-#include "tinyxml2.h"
-
 // Local includes
-#include "parser.h"
 #include "domain.h"
 #include "lattice.h"
 #include "solutionExporterEulerian.h"
 #include "function.h"
 #include "relaxation_time.h"
+
+# define M_PI  3.14159265358979323846
 
 void TRT_creation(int j, Lattice lat, double** f_minus, double** f_plus, double** f0_plus, double** f0_minus, int* bb, int Q)
 {
@@ -26,23 +24,7 @@ void TRT_creation(int j, Lattice lat, double** f_minus, double** f_plus, double*
 	}
 }
 
-void MRT_forcing(double** F, Lattice lat, double* Fi, int N)
-{
-	for (int j=0;j<N;j++)
-	{
-	F[j][0] = 0;
-	F[j][1] = 6*(lat.u_[j][0]*Fi[0]+lat.u_[j][1]*Fi[1]);
-	F[j][2] = -6*(lat.u_[j][0]*Fi[0]+lat.u_[j][1]*Fi[1]);
-	F[j][3] = Fi[0];
-	F[j][4] = -Fi[0];
-	F[j][5] = Fi[1];
-	F[j][6] = -Fi[1];
-	F[j][7] = 2*(lat.u_[j][0]*Fi[0]-lat.u_[j][1]*Fi[1]);
-	F[j][8] = lat.u_[j][0]*Fi[0]+lat.u_[j][1]*Fi[1];
-	}
-}
-
-void MRT_moment(int j,int k, Lattice lat, float** M, int Q)
+void MRT_moment(int j,int k, Lattice lat, double** M, int Q)
 {
 	double sum = 0;
 	for (int i=0;i<Q;i++)
@@ -55,12 +37,12 @@ void MRT_moment(int j,int k, Lattice lat, float** M, int Q)
 
 
 
-float** MRT_matrice_passage(int Q) //Matrice de passage entre les fonctions de distribution et les moments
+double** MRT_matrice_passage(int Q) //Matrice de passage entre les fonctions de distribution et les moments
 {
-	float** matrix = new float*[Q];
+	double** matrix = new double*[Q];
 	for ( int j=0;j<Q;j++)
 	{
-		matrix[j]=new float[Q];		
+		matrix[j]=new double[Q];		
 	}
 	for ( int k =0;k<Q;k++)
 	{
@@ -147,86 +129,109 @@ float** MRT_matrice_passage(int Q) //Matrice de passage entre les fonctions de d
 	matrix[8][8] = -1;
 	
 	return matrix;
+
+	//release memory
+	for (int j=0;j<Q;j++)
+	{
+		delete [] matrix[j];
+	}
+	delete [] matrix;	
 }
 
 
-
-float** MRT_S(int Q, double nu, double cs, double dt) // Matrice S des temps de relaxation relatif aux différents moments
+double** MRT_S(int Q, double tau_s, double tau_q) // Matrice S des temps de relaxation relatif aux différents moments
 {
-	float** matrix = new float*[Q];
+	double** matrix = new double*[Q];
 	for ( int j=0;j<Q;j++)
 	{
-		matrix[j]=new float[Q];	
+		matrix[j]=new double[Q];	
 		for ( int k=0;k<Q;k++)
 		{
 			matrix[j][k]=0;	
 		}	
 	}
 	
-	float s7 = 2/(1+6*nu);
-	float s8 = 2/(1+6*nu);
-	float tau_s =1/(0.5+ nu/(dt*cs*cs));
 	matrix[0][0] = 1;
 	matrix[1][1] = 1.4;
 	matrix[2][2] = 1.4;
 	matrix[3][3] = 1;
-	matrix[4][4] = 1.2;
 	matrix[5][5] = 1;
-	matrix[6][6] = 1.2;
-	matrix[7][7] = tau_s;
-	matrix[8][8] = tau_s;
+	
+	//matrix[0][0] = 1/tau_s;
+	//matrix[1][1] = 1/tau_s;
+	//matrix[2][2] = 1/tau_s;
+	//matrix[3][3] = 1/tau_s;
+	//matrix[5][5] = 1/tau_s;
+
+	
+
+	matrix[4][4] = 1/tau_q;
+	matrix[6][6] = 1/tau_q;
+	matrix[7][7] = 1/tau_s;
+	matrix[8][8] = 1/tau_s;
+
+	/*matrix[4][4] = 1/(0.5+3*nu);
+	matrix[6][6] = 1/(0.5+3*nu);
+	matrix[7][7] = 1/(0.5+3*nu);
+	matrix[8][8] = 1/(0.5+3*nu);*/
+	
 	return matrix;
+
+	//release memory
+	for(int j=0;j<Q;j++)
+	{
+		delete [] matrix[j];
+	}
+	delete [] matrix;
 }
 
-void MRT_collision( int j, double** f_star, float** C, Lattice lat,  int Q, double dt)
+//La collision avec m et m0
+void MRT_collision( int j, double** f_star, double** C, Lattice lat,  int Q, double* temp)
 {
-	double sum=0;
 	for (int k=0;k<Q;k++)
 	{
+		temp[0]=0;
 		for ( int i=0;i<Q;i++)
 		{
-		sum+=C[k][i]*(lat.m_[j][i]-lat.m0_[j][i]);
+		temp[0]+=C[k][i]*(lat.m_[j][i]-lat.m0_[j][i]);
 		}
-		f_star[j][k] = lat.f_[j][k]-sum;
-		sum=0;
-	}
-	
-}
-
-void MRT_forcing_collision(int j, double** f_star, float** C, Lattice lat,  int Q, double dt, float** F, float** C3, float** F_bar)
-{
-	double sum=0;
-	double sum2=0;
-	for (int k=0;k<Q;k++)
-	{
-		for (int i=0;i<Q;i++)
-		{
-		sum+=C3[k][i]*F_bar[j][i];
-		}
-		F[j][k] = sum;
-		sum=0;
-	}
-
-	for (int k=0;k<Q;k++)
-	{
-		for (int i=0;i<Q;i++)
-		{
-		sum2+=C[k][i]*(lat.m_[j][i]-lat.m0_[j][i]);
-		}
-		f_star[j][k] = lat.f_[j][k]-sum+dt*F[j][k];
-		sum2=0;
+		f_star[j][k] = lat.f_[j][k]-temp[0];
 	}
 }
 
-
-void MRT_equilibre(int j, int k,Lattice lat, int Q, float** M)
+//La collision avec f et f0 (on a donc une différence dans la matrice de passage)
+void MRT_collision_v2( int j, double** f_star, double** C, Lattice lat,  int Q, double* temp)
 {
-	/*double sum = 0;
-	for (int i=0;i<Q;i++)
+	for (int k=0;k<Q;k++)
 	{
-		sum+=M[k][i]*lat.f0_[j][i];
+		temp[0]=0;
+		for ( int i=0;i<Q;i++)
+		{
+		temp[0]+=C[k][i]*(lat.f_[j][i]-lat.f0_[j][i]);
+		}
+		f_star[j][k] = lat.f_[j][k]-temp[0];
 	}
-	lat.m0_[j][k] = sum;*/
+}
+
+void MRT_forcing_collision(int j, double** f_star, double** C, Lattice lat, double dt, double** F, double** C3, double** F_bar, int Q, double* temp)
+{
+	for (int k=0;k<Q;k++)
+	{
+		temp[0]=0;
+		temp[1]=0;
+		for (int i=0;i<Q;i++)
+		{
+			temp[0] += C3[k][i]*F_bar[j][i];
+			temp[1] += C[k][i]*(lat.m_[j][i]-lat.m0_[j][i]);
+		}
+		F[j][k] = temp[0];
+		f_star[j][k] = lat.f_[j][k] -temp[1] + dt*F[j][k];
+	}
+}
+
+
+void MRT_equilibre(int j,Lattice lat)
+{
 	lat.m0_[j][0] = lat.rho_[j] * 1; //rho
 	lat.m0_[j][1] = lat.rho_[j] * (-2 + 3 * (lat.u_[j][0]*lat.u_[j][0] + lat.u_[j][1] * lat.u_[j][1])); //e = rho * (-2 + 3 * |u|^2)
 	lat.m0_[j][2] = lat.rho_[j] * (1 - 3 * (lat.u_[j][0]*lat.u_[j][0] + lat.u_[j][1] * lat.u_[j][1])); //epsilon = rho * (1- 3 * |u|^2)
@@ -236,22 +241,31 @@ void MRT_equilibre(int j, int k,Lattice lat, int Q, float** M)
 	lat.m0_[j][6] = lat.rho_[j] * (-lat.u_[j][1]); //qy = - rho * v
 	lat.m0_[j][7] = lat.rho_[j] * (lat.u_[j][0]-lat.u_[j][0] - lat.u_[j][1]*lat.u_[j][1]); //pxx = rho * (u*u - v*v)
 	lat.m0_[j][8] = lat.rho_[j] * (lat.u_[j][0]*lat.u_[j][1]);//pxy = rho * u * v
-	/*for (int i =0;i<9;i++)
+}
+
+void MRT_equilibre_v2(int j, Lattice lat, double** M, int Q, double* temp)
+{
+	for (int k=0;k<Q;k++)
 	{
-		printf("Lattice %d, valeur du moment d'équilibre n° %d : %0.3f\n",j,i,lat.m0_[j][i]);
-	}*/
+		temp[0]=0;
+		for ( int i=0;i<Q;i++)
+		{
+			temp[0]+=M[k][i]*lat.f0_[j][i];
+		}
+		lat.m0_[j][k]= temp[0];
+	}
 }
 
 // matrix inversion
 // the result is put in Y
-void MatrixInversion(float **A, int order, float **Y)
+void MatrixInversion(double **A, int order, double **Y)
 {
     // get the determinant of a
     double det = 1.0/CalcDeterminant(A,order);
  
     // memory allocation
-    float *temp = new float[(order-1)*(order-1)];
-    float **minor = new float*[order-1];
+    double *temp = new double[(order-1)*(order-1)];
+    double **minor = new double*[order-1];
     for(int i=0;i<order-1;i++)
         minor[i] = temp+(i*(order-1));
  
@@ -274,11 +288,10 @@ void MatrixInversion(float **A, int order, float **Y)
 }
  
 // calculate the cofactor of element (row,col)
-int GetMinor(float **src, float **dest, int row, int col, int order)
+int GetMinor(double **src, double **dest, int row, int col, int order)
 {
     // indicate which col and row is being copied to dest
     int colCount=0,rowCount=0;
- 
     for(int i = 0; i < order; i++ )
     {
         if( i != row )
@@ -299,9 +312,8 @@ int GetMinor(float **src, float **dest, int row, int col, int order)
  
     return 1;
 }
- 
 // Calculate the determinant recursively.
-double CalcDeterminant( float **mat, int order)
+double CalcDeterminant( double **mat, int order)
 {
     // order must be >= 0
     // stop the recursion when matrix is a single element
@@ -309,13 +321,13 @@ double CalcDeterminant( float **mat, int order)
         return mat[0][0];
  
     // the determinant value
-    float det = 0;
+    double det = 0;
  
     // allocate the cofactor matrix
-    float **minor;
-    minor = new float*[order-1];
+    double **minor;
+    minor = new double*[order-1];
     for(int i=0;i<order-1;i++)
-        minor[i] = new float[order-1];
+        minor[i] = new double[order-1];
  
     for(int i = 0; i < order; i++ )
     {
@@ -326,21 +338,28 @@ double CalcDeterminant( float **mat, int order)
         det += (i%2==1?-1.0:1.0) * mat[0][i] * CalcDeterminant(minor,order-1);
         //det += pow( -1.0, i ) * mat[0][i] * CalcDeterminant( minor,order-1 );
     }
- 
     // release memory
     for(int i=0;i<order-1;i++)
     delete [] minor[i];
+
     delete [] minor;
- 
     return det;
 }
 
-void matrix_product(float **A, float **B,float **C,  int Q) // produit matriciel de A et B dans C, C = A * B
+void matrix_product(double **A, double **B,double **C,  int Q) // produit matriciel de A et B dans C, C = A * B
 {
 	for ( int i=0;i<Q;i++)
 	{
 		for ( int j=0;j<Q;j++)
 		{
+			C[i][j] = 0;
+		}
+	}
+	for ( int i=0;i<Q;i++)
+	{
+		for ( int j=0;j<Q;j++)
+		{
+			C[i][j] = 0;
 			for ( int k=0;k<Q;k++)
 			{
 				C[i][j]+= A[i][k]*B[k][j];
@@ -349,116 +368,41 @@ void matrix_product(float **A, float **B,float **C,  int Q) // produit matriciel
 	}
 }
 
-void affichage_matrix(int Q, float** M, float** invM, float** Si, float** C, float** F, float** F2)
-{
-	printf("Matrice de passage : \n");
-	for (int i =0;i<Q;i++)
-	{
-		for (int j=0;j<Q;j++)
-		{
-			printf("%0.0f \t",M[i][j]);
-		}
-		printf("\n");
-	}
-	
-	printf("Matrice inverse de passage : \n");
-	for (int i =0;i<Q;i++)
-	{
-		for (int j=0;j<Q;j++)
-		{
-			printf("%0.3f \t",invM[i][j]);
-		}
-		printf("\n");
-	}
-	
-	printf("Matrice de relaxation : \n");
-	for (int i =0;i<Q;i++)
-	{
-		for (int j=0;j<Q;j++)
-		{
-			printf("%0.3f \t",Si[i][j]);
-		}
-		printf("\n");
-	}
-	
-	printf("Matrice du produit M-1 * S : \n");
-	for (int i =0;i<Q;i++)
-	{
-		for (int j=0;j<Q;j++)
-		{
-			printf("%0.3f \t",C[i][j]);
-		}
-		printf("\n");
-	}
-
-	printf("Matrice de forçage F: \n");
-	for (int i=0;i<Q;i++)
-	{
-		printf("%0.3f \n",F[i]);
-	}
-
-	printf("Matrice du produit (I-0.5*S)*F: \n");
-		for (int i =0;i<Q;i++)
-	{
-		for (int j=0;j<Q;j++)
-		{
-			printf("%0.3f \t",F2[i][j]);
-		}
-		printf("\n");
-	}
-}
-
-
-
-void MRT_forcing(int j, int k, double cs, double* omega_i, double** xi, double* Fi, float** F_bar, Lattice lat, int D)
+void MRT_forcing(int j, int Q, double cs, double* omega_i, double** xi, double* Fi, double** F_bar, Lattice lat, double* temp)
 {
 	//Rappel : F_bar = omega_i * [ci*F/cs² + uF : (cici-cs²I)/cs^4]
 	//Rappel : F = invM*(I- 1/2 * S)*M*F_bar
 
-	double sum = 0; //produit scalaire ci * F
-	double sum2 = 0; //somme de uF:(cici-cs²I)
-	double** matrice1 = new double*[D]; //matrice uF
-	double** matrice2 = new double*[D]; //matrice cici
-	double** matrice3 = new double*[D]; //matrice cs²I
-	double** matrice4 = new double*[D]; //matrice cici-cs²I
-
-	
-	for (int l =0;l<D;l++)
+	temp[0]=0; //produit scalaire ci * F
+	temp[1]=0; //somme de uF:(cici-cs²I)
+	for (int k=0;k<Q;k++)
 	{
-		matrice1[l] = new double[D];
-		matrice2[l] = new double[D];
-		matrice3[l] = new double[D];
-		matrice4[l] = new double[D];
-		for (int m=0;m<D;m++)
-		{
-			matrice1[l][m] = lat.u_[j][l]*Fi[m];
-			matrice2[l][m] = xi[k][l]*xi[k][m];
-			if(l==m)
-			{
-				matrice3[l][m] = cs*cs;
-			}
-			else
-			{
-				matrice3[l][m] = 0;	
-			}
-		}
-		for (int m=0;m<D;m++)
-		{
-			matrice4[l][m] = matrice2[l][m]-matrice3[l][m];
-		}
-	}	
-	for (int l =0;l<D;l++)
-	{
-		sum+=xi[k][l]*Fi[l];
-		for (int m=0;m<D;m++)
-		{
-			sum2+=matrice1[l][m]*matrice4[m][l];
-		}
+		temp[0] = (xi[k][0]*Fi[0] + xi[k][1]*Fi[1]);
+		temp[1] = (lat.u_[j][0]*Fi[0]*(xi[k][0]*xi[k][0]-cs*cs) + lat.u_[j][0]*Fi[1]*xi[k][1]*xi[k][0] + lat.u_[j][1]*Fi[0]*xi[k][0]*xi[k][1] + lat.u_[j][1]*Fi[1]*(xi[k][1]*xi[k][1]-cs*cs));
+		F_bar[j][k] = omega_i[k]*( 1/(cs*cs) * temp[0] + 1/(cs*cs*cs*cs) * temp[1]);
 	}
-	F_bar[j][k] = omega_i[k]*( 1/(cs*cs) * sum + 1/(cs*cs*cs*cs) * sum2);
-	free(matrice1);
-	free(matrice2);
-	free(matrice3);
-	free(matrice4);
+
+	/*F_bar[j][0] = omega_i[0]*(1/(cs*cs)*(xi[0][0]*Fi[0]+xi[0][1]*Fi[1])+1/(cs*cs*cs*cs)*(lat.u_[j][0]*Fi[0]*(xi[0][0]*xi[0][0]-cs*cs) + lat.u_[j][0]*Fi[1]*xi[0][1]*xi[0][0] + lat.u_[j][1]*Fi[0]*xi[0][0]*xi[0][1] + lat.u_[j][1]*Fi[1]*(xi[0][1]*xi[0][1]-cs*cs)));
+	F_bar[j][1] = omega_i[1]*(1/(cs*cs)*(xi[1][0]*Fi[0]+xi[1][1]*Fi[1])+1/(cs*cs*cs*cs)*(lat.u_[j][0]*Fi[0]*(xi[1][0]*xi[1][0]-cs*cs) + lat.u_[j][0]*Fi[1]*xi[1][1]*xi[1][0] + lat.u_[j][1]*Fi[0]*xi[1][0]*xi[1][1] + lat.u_[j][1]*Fi[1]*(xi[1][1]*xi[1][1]-cs*cs)));
+	F_bar[j][2] = omega_i[2]*(1/(cs*cs)*(xi[2][0]*Fi[0]+xi[2][1]*Fi[1])+1/(cs*cs*cs*cs)*(lat.u_[j][0]*Fi[0]*(xi[2][0]*xi[2][0]-cs*cs) + lat.u_[j][0]*Fi[1]*xi[2][1]*xi[2][0] + lat.u_[j][1]*Fi[0]*xi[2][0]*xi[2][1] + lat.u_[j][1]*Fi[1]*(xi[2][1]*xi[2][1]-cs*cs)));
+	F_bar[j][3] = omega_i[3]*(1/(cs*cs)*(xi[3][0]*Fi[0]+xi[3][1]*Fi[1])+1/(cs*cs*cs*cs)*(lat.u_[j][0]*Fi[0]*(xi[3][0]*xi[3][0]-cs*cs) + lat.u_[j][0]*Fi[1]*xi[3][1]*xi[3][0] + lat.u_[j][1]*Fi[0]*xi[3][0]*xi[3][1] + lat.u_[j][1]*Fi[1]*(xi[3][1]*xi[3][1]-cs*cs)));
+	F_bar[j][4] = omega_i[4]*(1/(cs*cs)*(xi[4][0]*Fi[0]+xi[4][1]*Fi[1])+1/(cs*cs*cs*cs)*(lat.u_[j][0]*Fi[0]*(xi[4][0]*xi[4][0]-cs*cs) + lat.u_[j][0]*Fi[1]*xi[4][1]*xi[4][0] + lat.u_[j][1]*Fi[0]*xi[4][0]*xi[4][1] + lat.u_[j][1]*Fi[1]*(xi[4][1]*xi[4][1]-cs*cs)));
+	F_bar[j][5] = omega_i[5]*(1/(cs*cs)*(xi[5][0]*Fi[0]+xi[5][1]*Fi[1])+1/(cs*cs*cs*cs)*(lat.u_[j][0]*Fi[0]*(xi[5][0]*xi[5][0]-cs*cs) + lat.u_[j][0]*Fi[1]*xi[5][1]*xi[5][0] + lat.u_[j][1]*Fi[0]*xi[5][0]*xi[5][1] + lat.u_[j][1]*Fi[1]*(xi[5][1]*xi[5][1]-cs*cs)));
+	F_bar[j][6] = omega_i[6]*(1/(cs*cs)*(xi[6][0]*Fi[0]+xi[6][1]*Fi[1])+1/(cs*cs*cs*cs)*(lat.u_[j][0]*Fi[0]*(xi[6][0]*xi[6][0]-cs*cs) + lat.u_[j][0]*Fi[1]*xi[6][1]*xi[6][0] + lat.u_[j][1]*Fi[0]*xi[6][0]*xi[6][1] + lat.u_[j][1]*Fi[1]*(xi[6][1]*xi[6][1]-cs*cs)));
+	F_bar[j][7] = omega_i[7]*(1/(cs*cs)*(xi[7][0]*Fi[0]+xi[7][1]*Fi[1])+1/(cs*cs*cs*cs)*(lat.u_[j][0]*Fi[0]*(xi[7][0]*xi[7][0]-cs*cs) + lat.u_[j][0]*Fi[1]*xi[7][1]*xi[7][0] + lat.u_[j][1]*Fi[0]*xi[7][0]*xi[7][1] + lat.u_[j][1]*Fi[1]*(xi[7][1]*xi[7][1]-cs*cs)));
+	F_bar[j][8] = omega_i[8]*(1/(cs*cs)*(xi[8][0]*Fi[0]+xi[8][1]*Fi[1])+1/(cs*cs*cs*cs)*(lat.u_[j][0]*Fi[0]*(xi[8][0]*xi[8][0]-cs*cs) + lat.u_[j][0]*Fi[1]*xi[8][1]*xi[8][0] + lat.u_[j][1]*Fi[0]*xi[8][0]*xi[8][1] + lat.u_[j][1]*Fi[1]*(xi[8][1]*xi[8][1]-cs*cs)));
+*/
 }
 
+void affichage_matrix(int Q, double** matrix)
+{
+	for (int i =0;i<Q;i++)
+	{
+		for (int j=0;j<Q;j++)
+		{
+			printf("%.3f \t",matrix[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
