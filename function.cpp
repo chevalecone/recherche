@@ -3,6 +3,10 @@
 #include <cmath>
 #include <ctime>
 #include <stdio.h>
+#include <stdlib.h>
+#include <algorithm>
+#include <time.h>
+
 
 // Local includes
 #include "domain.h"
@@ -17,14 +21,14 @@
 #define FPMIN 1.0e-30
 #define EPS 1.0e-8 
 
-double pscal(double *a,double *b,  int D, double sigma) //fonction pour le produit scalaire en D dimensions
+double pscal(double* a,double* b, int D, double sigma) //fonction pour le produit scalaire en D dimensions
 {
 	sigma=0;
 	for ( int i=0;i<D;i++)
 	{
 		sigma+=a[i]*b[i];
 	}
-return sigma;
+	return sigma;
 }
 
 void density ( int j, int Q, Lattice lat, double sigma) //fonction pour la somme des fi pour calculer la masse volumique
@@ -125,6 +129,189 @@ void SquareCylinder(double abscisse, double ordonnee, double diametre, double** 
 	coin[3][1] = ordonnee + 0.5*diametre;
 }
 
+//Création d'un cylindre circulaire avec sa position du milieu et son diamètre
+void typeCircular(double abscisse, double ordonnee, double diametre, int N, double** position, bool* typeLat)
+{
+	for (int i=0;i<N;i++)
+	{
+		if(((position[i][0]-abscisse)*(position[i][0]-abscisse)+(position[i][1]-ordonnee)*(position[i][1]-ordonnee))<=diametre*diametre*0.25)
+		{
+			typeLat[i] = true;
+		}
+	}
+}
+
+void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre)
+{
+	double* tableau[50];
+	for (int i=0;i<50;i++)
+	{
+		tableau[i] = new double[3];
+		for (int j=0;j<5;j++)
+		{
+			tableau[i][j] = 0;
+		}
+	}
+	int num = 0;
+	double poro2;
+	int buf = 0;
+	srand(time(NULL));
+	int rnd  = rand()%(nx-1);
+	int rnd2 = rand()%(ny-1);
+	//int ratio = 30;
+	int ratio = rand()%30 + 10;
+	double abscisse =  position[rnd][0];  // abscisse in the range 1 to nx
+	double ordonnee =  position[rnd2*100][1];  // ordonnee in the range 1 to ny
+	srand(time(NULL));
+    double diametre = (ratio)*0.01*ny;	
+	printf("Abscisse : %f Ordonnée : %f Diametre : %f\n",abscisse, ordonnee, diametre);
+	while (poro2<=0.99*poro || poro2>=1.01*poro)
+	{
+		bool* typeLat_buf = new bool[N];
+		typeCircular(abscisse,ordonnee,diametre,N,position,typeLat_buf);
+		for(int j=0;j<N;j++)
+		{
+			if(typeLat_buf[j]==true && typeLat[j]==true)
+			{
+				buf++;
+			}
+			if(typeLat_buf[j]==true && (position[j][0]<0.03*nx || position[j][0]>0.97*nx))
+				{
+					buf++;
+				}
+		}
+		if(buf==0)
+		{
+			tableau[num][0] = abscisse;
+			tableau[num][1]  = ordonnee;
+			tableau[num][2]  = diametre;
+			num++;
+			for (int j=0;j<N;j++)
+			{
+				if(typeLat_buf[j]==true)
+				{
+					typeLat[j] = true;
+				}
+			}
+			//printf("Abscisse : %f Ordonnée : %f Diametre : %f\n",abscisse, ordonnee, diametre);
+		}
+		rnd  = rand()%(nx-10)+10;
+		rnd2 = rand()%(nx-10)+10;
+		//ratio = 30;
+		ratio = rand()%30 + 10;
+		abscisse =  position[rnd][0];
+		ordonnee =  position[rnd2*100][1];
+		diametre = (ratio)*0.01*ny;	
+		//printf("Abscisse : %f Ordonnée : %f Diametre : %f\n",abscisse, ordonnee, diametre);
+		buf = 0;
+		poro2 = porosite (typeLat,nombre,N);
+		printf("Porosité : %f\n",poro2);
+	
+	}
+	for (int i=0;i<50;i++)
+	{
+		if(tableau[i][0]!=0)
+		{
+			printf("Cylindre %d, diametre %f\n",i,tableau[i][2]);
+		}
+	}
+}
+
+void randomSquare(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre, double** cylinder)
+{
+	bool* typeLat_buf = new bool[N];
+	double poro2 = 1;
+	int buf = 0;
+	srand(time(NULL));
+	int rnd  = rand()%(nx-10) +10;
+	int rnd2 = rand()%(ny-10) +10;
+	int ratio = rand()%20 + 10;
+	double abscisse =  position[rnd][0];  // abscisse in the range 1 to nx
+	double ordonnee =  position[rnd2*100][1];  // ordonnee in the range 1 to ny
+	srand(time(NULL));
+    double diametre = (ratio)*0.01*ny;	
+	printf("Abscisse : %f Ordonnée : %f Diametre : %f\n",abscisse, ordonnee, diametre);
+	while (poro2<=0.98*poro || poro2>=1.02*poro)
+	{
+		SquareCylinder(abscisse,ordonnee,diametre,cylinder);
+		typeSquare(N,cylinder,position,typeLat_buf);
+		for(int j=0;j<N;j++)
+		{
+			if(typeLat_buf[j]==true && typeLat[j]==true)
+			{
+				buf++;
+			}
+			if(typeLat_buf[j]==true && (position[j][0]<0.03*nx || position[j][0]>0.97*nx || position[j][1]>0.97*ny || position[j][1]<0.03*ny))
+			{
+				buf++;
+			}
+		}
+		if(buf==0)
+		{
+			printf("A PRENDRE\n");
+			for (int j=0;j<N;j++)
+			{
+				if(typeLat_buf[j]==true)
+				{
+					typeLat[j] = true;
+				}
+			}
+		}
+		rnd  = rand()%(nx-10)+10;
+		rnd2 = rand()%(nx-10)+10;
+		ratio = rand()%20 + 10;
+		abscisse =  position[rnd][0];
+		ordonnee =  position[rnd2*100][1];
+		diametre = (ratio)*0.01*ny;	
+		printf("Abscisse : %f Ordonnée : %f Diametre : %f\n",abscisse, ordonnee, diametre);
+		buf = 0;
+		poro2 = porosite (typeLat,nombre,N);
+		printf("Porosité : %f\n",poro2);
+		for (int j=0;j<N;j++)
+		{
+			typeLat_buf[j] = false;
+		}
+	}
+}
+
+void nettoyage(bool* typeLat, int** conn, int N, int Q)
+{
+	int buf =0;
+	for (int j=0;j<N;j++)
+	{
+		if (typeLat[j]==true)
+		{
+			for (int k=0;k<Q;k++)
+			{
+				if(typeLat[conn[j][k]]!=-1)
+				{
+					if (typeLat[conn[j][k]]==true)
+					{
+						buf++;
+					}
+				}
+			}
+			if(buf==0 || buf==1)
+			{
+				typeLat[j]=false;
+			}
+		}
+		buf=0;
+	}
+}
+
+double porosite (bool* typeLat, int nombre, int N)
+{
+	nombre=0;
+	for (int i=0;i<N;i++)
+	{
+		if (typeLat[i]==true)
+		{
+			nombre++;
+		}
+	}
+	return (double)(N-nombre)/N;
+}
 
 //Fonction permettant de créer un tableau de booléens, où 0 représente un noeud fluide et 1 un noeud solide pour un cylindre carré
 void typeSquare( int N, double** coin, double** position, bool* typeLat)
@@ -216,73 +403,6 @@ void bounceback_neighbour( int* bb,  int Q)
 }
 
 
-//Explication
-// fi,eq = rho * omega_i * (1+1/(cs*cs)*pscal(ci,u) + 1/(2*cs^4) * Qi : uu)
-// fi,eq = rho * omega_i * (1+1/(cs*cs)*pscal(ci,u) + 1/(2*cs^4) * Qeq)
-// Tout ça en D2Q9
-
-//Calcul de la double contraction Qi : uu
-void Qi_equilibre(int Q, double cs, double** xi, double*** Qi)
-{
-	for (int k=0;k<Q;k++)
-	{
-		Qi[k][0][0] = xi[k][0]*xi[k][0] - cs*cs;
-		Qi[k][0][1] = xi[k][0]*xi[k][1];
-		Qi[k][1][0] = xi[k][1]*xi[k][0];
-		Qi[k][1][1] = xi[k][1]*xi[k][1] - cs*cs;
-	}
-}
-void fi_equilibre(int Q, double*** Qi, Lattice lat, double* omega_i, double**xi, double sigma, int D, int j, double cs)
-{
-	for (int k =0;k<Q;k++)
-	{
-		double Qeq = Qi[k][0][0] * lat.u_[j][0]*lat.u_[j][0] + Qi[k][0][1] * lat.u_[j][0]*lat.u_[j][1] + Qi[k][1][0] * lat.u_[j][1]*lat.u_[j][0] + Qi[k][1][1] * lat.u_[j][1]*lat.u_[j][1];
-		lat.f0_[j][k] = lat.rho_[j] * omega_i[k] * (1+ 1/(cs*cs)*pscal(xi[k],lat.u_[j],D,sigma) + 1/(2*cs*cs*cs*cs) * Qeq);
-	}
-	
-}
-
-double Ei_small(double x) //Donne la valeur de Ei(x) pour des faibles valeurs de x
-{
-	int k;
-	double fact, prev, sum,term;
-
-	if(x <= 0.0) printf("Bad argument in ei");
-	if(x < FPMIN) return log(x) + EULER;
-	if(x <= -log(EPS))
-	{
-		sum = 0.0;
-		fact = 1.0;
-		for (k=1;k<=MAXIT;k++)
-		{
-			fact*=x/k;
-			term=fact/k;
-			sum+=term;
-			if(term < EPS*sum) break;
-		}
-		if (k > MAXIT) printf("Series failes in ei");
-		return sum+log(x)+EULER;
-	}
-	else
-	{
-		sum = 0.0;
-		term = 1.0;
-		for(k=1;k<=MAXIT;k++)
-		{
-			prev = term;
-			term *=k/x;
-			if (term < EPS) break;
-			if (term < prev) sum+=term;
-			else
-			{
-				sum -=prev;
-				break;
-			}
-		}
-		return exp(x)*(1.0+sum)/x;
-	}
-}
-
 double Ei_big(int n, double x)//Donne la valeur de Ei(x) pour des grandes valeurs de x
 {
 	int i,ii,nm1;
@@ -344,6 +464,259 @@ double Ei_big(int n, double x)//Donne la valeur de Ei(x) pour des grandes valeur
 	}
 	return ans;
 }
+
+//Rappel Qi = ci*ci - cs² * I
+double*** Qi_function (int k, double cs, double** xi, int D, int Q)
+{
+	double*** Qi = new double**[Q];
+	for (int i =0;i<Q;i++)
+	{
+		Qi[i] = new double*[D];
+		for (int j=0;j<D;j++)
+		{
+			Qi[i][j] = new double[D];
+			for (int k=0;k<D;k++)
+			{
+				if (k==j)
+				{
+					Qi[i][j][k] = xi[i][j]*xi[i][k]-cs*cs;
+				}
+				else
+				{
+					Qi[i][j][k] = xi[i][j]*xi[i][k];
+				}
+				
+			}
+		}
+	}
+	return Qi;
+}
+
+//Explication
+// fi,eq = rho * omega_i * (1+1/(cs*cs)*pscal(ci,u) + 1/(2*cs^4) * Qi : uu)
+// fi,eq = rho * omega_i * (1+1/(cs*cs)*pscal(ci,u) + 1/(2*cs^4) * Qeq)
+// Tout ça en D2Q9
+void fi_equilibre (int j, int k, double rho, double cs, Lattice lat, double* u, double** xi, int D, double*** Qi, double* buffer, double* omega_i, double sigma)
+{
+	for (int i =0;i<10;i++)
+	{
+		buffer[i] = 0;
+	}
+	double** sum3 = new double*[D];
+	for (int i=0;i<D;i++)
+	{
+		sum3[i] = new double[D];
+	}
+	buffer[0] = pscal(xi[k],u,D,sigma);
+	
+	for (int i =0;i<D;i++)
+	{
+		for (int l =0;l<D;l++)
+		{
+			sum3[i][l] = u[i]*u[l];
+		}
+	}
+	for (int i=0;i<D;i++)
+	{
+		for (int l=0;l<D;l++)
+		{
+			buffer[1]+=Qi[k][i][l]*sum3[l][i];
+		}
+	}
+	lat.f0_[j][k] = omega_i[k]*rho*(1+1/(cs*cs)*buffer[0] + 1/(2*cs*cs*cs*cs)*buffer[1]);
+	for (int i =0;i<D;i++)
+	{
+		delete[]sum3[i];
+	}
+	delete[] sum3;
+}
+
+//0.0564 0.1128 0.1692 0.2257 0.3385 0.4514 0.6670 0.9027 1.1284 1.6926 2.2568 3.3851 4.5135 6.7703 9.0270 11.2838 16.9257
+char FileName(double Kn)
+{
+	if (Kn==0.0564)
+	{
+		return 'M';
+	}
+	else if (Kn==0.1128)
+	{
+		return 'A';
+	}
+	else if (Kn==0.1692)
+	{
+		return 'N';
+	}
+	else if (Kn==0.2257)
+	{
+		return 'B';
+	}
+	else if (Kn==0.3385)
+	{
+		return 'O';
+	}
+	else if (Kn==0.4514)
+	{
+		return 'C';
+	}
+	else if (Kn==0.667)
+	{
+		return 'D';
+	}
+	else if (Kn==0.9027)
+	{
+		return 'E';
+	}
+	else if (Kn==1.1284)
+	{
+		return 'F';
+	}
+	else if (Kn==1.6926)
+	{
+		return 'P';
+	}
+	else if (Kn==2.2568)
+	{
+		return 'G';
+	}
+	else if (Kn==3.3851)
+	{
+		return 'R';
+	}
+	else if (Kn==4.5135)
+	{
+		return 'H';
+	}
+	else if (Kn==6.7703)
+	{
+		return 'I';
+	}
+	else if (Kn==9.0270)
+	{
+		return 'J';
+	}
+	else if (Kn==11.2838)
+	{
+		return 'K';
+	}
+	else if (Kn==16.9257)
+	{
+		return 'L';
+	}
+}
+
+void PI_neq_inlet(double** Pi_neq, int j, int Q, Lattice lat, double*** Qi, double* buffer, int* bb)
+{
+	for (int i =0;i<10;i++)
+	{
+		buffer[i] = 0;
+	}
+	for (int k=0;k<Q;k++)
+	{ 
+		if (k ==1 || k ==5 || k==8)
+		{
+			buffer[0]+=Qi[k][0][0]*(lat.f_[j][bb[k]]-lat.f0_[j][bb[k]]);
+			buffer[1]+=Qi[k][0][1]*(lat.f_[j][bb[k]]-lat.f0_[j][bb[k]]);
+			buffer[2]+=Qi[k][1][0]*(lat.f_[j][bb[k]]-lat.f0_[j][bb[k]]);
+			buffer[3]+=Qi[k][1][1]*(lat.f_[j][bb[k]]-lat.f0_[j][bb[k]]);
+		}
+		else
+		{
+			buffer[0]+=Qi[k][0][0]*(lat.f_[j][k]-lat.f0_[j][k]);
+			buffer[1]+=Qi[k][0][1]*(lat.f_[j][k]-lat.f0_[j][k]);
+			buffer[2]+=Qi[k][1][0]*(lat.f_[j][k]-lat.f0_[j][k]);
+			buffer[3]+=Qi[k][1][1]*(lat.f_[j][k]-lat.f0_[j][k]);
+		}
+	}
+	Pi_neq[0][0] = buffer[0];
+	Pi_neq[0][1] = buffer[1];
+	Pi_neq[1][0] = buffer[2];
+	Pi_neq[1][1] = buffer[3];
+}
+
+void PI_neq_outlet(double** Pi_neq, int j, int Q, Lattice lat, double*** Qi, double* buffer, int* bb)
+{
+	for (int i =0;i<10;i++)
+	{
+		buffer[i] = 0;
+	}
+	for (int k=0;k<Q;k++)
+	{ 
+		if (k ==3 || k ==6 || k==7)
+		{
+			buffer[0]+=Qi[k][0][0]*(lat.f_[j][bb[k]]-lat.f0_[j][bb[k]]);
+			buffer[1]+=Qi[k][0][1]*(lat.f_[j][bb[k]]-lat.f0_[j][bb[k]]);
+			buffer[2]+=Qi[k][1][0]*(lat.f_[j][bb[k]]-lat.f0_[j][bb[k]]);
+			buffer[3]+=Qi[k][1][1]*(lat.f_[j][bb[k]]-lat.f0_[j][bb[k]]);
+		}
+		else
+		{
+			buffer[0]+=Qi[k][0][0]*(lat.f_[j][k]-lat.f0_[j][k]);
+			buffer[1]+=Qi[k][0][1]*(lat.f_[j][k]-lat.f0_[j][k]);
+			buffer[2]+=Qi[k][1][0]*(lat.f_[j][k]-lat.f0_[j][k]);
+			buffer[3]+=Qi[k][1][1]*(lat.f_[j][k]-lat.f0_[j][k]);
+		}
+	}
+	Pi_neq[0][0] = buffer[0];
+	Pi_neq[0][1] = buffer[1];
+	Pi_neq[1][0] = buffer[2];
+	Pi_neq[1][1] = buffer[3];
+}
+
+
+void fi_bar(double* omega_i, double***Qi, double** Pi_neq, double cs, int j, int D, Lattice lat, double* buffer, int Q)
+{
+	for (int k=0;k<Q;k++)
+	{
+		for (int i =0;i<D;i++)
+		{
+			for (int l=0;l<D;l++)
+			{
+				buffer[0]+=Qi[k][i][l]*Pi_neq[l][i];
+			}
+		}
+	lat.f_[j][k]=lat.f0_[j][k]+omega_i[k]/(2*cs*cs*cs*cs)*buffer[0];
+	buffer[0]=0;
+	}	
+}
+
+//Porosité : volume de solide / volume total
+double porosity( bool* typeLat, int N)
+{
+	double poro = 0;
+	int l = 0;
+	for (int i=0;i<N;i++)
+	{
+		if(typeLat[i]==false) //Si la lattice est solide
+		{
+			l++;
+		}
+	}
+	poro = l/N;
+	return poro;
+}
+
+void tab_voisin(int N, int Q, bool* typeLat, int* tab_Voisin, int** conn)
+{
+	int buf;
+	for (int j=0;j<N;j++)
+	{
+		buf = 0;
+		for (int k=0;k<Q;k++)
+		{
+			if (conn[j][k]!=-1 && typeLat[conn[j][k]])
+			{
+				buf+=pow(2,k);
+			}
+		}
+		tab_Voisin[j] = buf;
+		if(typeLat[j])
+		{
+			tab_Voisin[j] = 511;
+		}
+	}
+}
+
+
 
 
 

@@ -116,12 +116,20 @@ void writeVector(Domain& domain, string label, int iter, double** vector)
     }
 }
 
-void writeLattice(Domain& domain, string label, int iter, Lattice lat)
+void writeLattice(Domain& domain, string label, double Kn,double mu,char name, int iter, Lattice lat)
 {
     ostringstream oss;
 
     // Write iteration number to flux
+	oss << "LBM";
+	oss << "_";
     oss << iter;
+	//oss << "_poro";
+	//oss << Kn;
+	oss << "_";
+	//oss << mu;
+	//oss << "_";
+	oss << name;
 
     // Establish the file name
     string filename = "output/"+label+"_"+oss.str()+".vtk";

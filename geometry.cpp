@@ -34,8 +34,8 @@ void D2Q9(double*omega_i,double**xi,double xi_r)
 
 void rang(int ny, double dx, int nx, double** rank)
 {
-	for (int i=0;i<ny*nx;i++)
+	for (int i=0;i<ny;i++)
 	{
-		rank[i][0] = 0.5*dx+dx*(int)(i/nx);
+		rank[i][0] = 0.5*dx+dx*i;
 	}
 }

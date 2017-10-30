@@ -1,11 +1,20 @@
+#include <stdlib.h>
+#include <algorithm>
+#include <time.h>
+#include <iostream>
+
+
 //*************************CALCULS MACROSCOPIQUES**************************//
 double pscal(double *a,double *b,  int D, double sigma);
 void density ( int j, int Q, Lattice lat, double sigma);
 void velocity( int j, int D,  int Q, double** xi, Lattice lat, double sigma);
 
 //***************************EQUILIBRE**************************************//
-void Qi_equilibre(int Q, double cs, double** xi, double*** Qi);
-void fi_equilibre(int Q, double*** Qi, Lattice lat, double* omega_i, double**xi, double sigma, int D, int j, double cs);
+double*** Qi_function (int k, double cs, double** xi, int D, int Q);
+void fi_equilibre (int j, int k, double rho, double cs, Lattice lat, double* u, double** xi, int D, double*** Qi, double* buffer, double* omega_i,double sigma);
+void PI_neq_inlet(double** Pi_neq, int j, int Q, Lattice lat, double*** Qi, double* buffer, int* bb);
+void PI_neq_outlet(double** Pi_neq, int j, int Q, Lattice lat, double*** Qi, double* buffer, int* bb);
+void fi_bar(double* omega_i, double***Qi, double** Pi_neq, double cs, int j, int D, Lattice lat, double* buffer, int Q);
 
 //*************************GEOMETRIE DU DOMAINE**************************//
 
@@ -18,7 +27,8 @@ void bounceback_neighbour( int* bb,  int Q);
 //Cas pour les frontières du domaine et/ou solides
 void domainCondition(int nx, int ny,  int* cas);
 void solidCondition(int Q, int** conn,int nx, int ny, int*cas, bool* typeLat);
-
+//Condition des lattices vis à vis des cylindres solides
+void tab_voisin(int N, int Q, bool* typeLat, int* tab_Voisin, int** conn);
 
 //********************************SOLIDES********************************//
 
@@ -29,8 +39,16 @@ void pos_solide (bool* typeLat,  int* pos, int nx, int ny);
 void SquareCylinder(double abscisse, double ordonnee, double diametre, double** coin);
 //Remplit typeLat pour un cylindre carré
 void typeSquare( int N, double** coin, double** position, bool* typeLat);
-
+double porosite (bool* typeLat, int nombre, int N);
+void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre);
+void randomSquare(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre, double** cylinder);
+void nettoyage(bool* typeLat, int** conn, int N, int Q);
 //**************************WALL FUNCTION******************************//
 //Donne la valeur de Ei(x)
-double Ei_small(double x);
 double Ei_big(int n, double x);
+
+//**********************UTILE POUR L'EXPORTATION****************//
+char FileName(double Kn);
+
+//**********************Caractéristiques du milieu************//
+double porosity( bool* typeLat, int N);

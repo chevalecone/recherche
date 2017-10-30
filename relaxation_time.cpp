@@ -24,29 +24,17 @@ void TRT_creation(int j, Lattice lat, double** f_minus, double** f_plus, double*
 	}
 }
 
-void MRT_moment(int j, Lattice lat, double** M, int Q, double* temp)
+void MRT_moment(int j,int k, Lattice lat, double** M, int Q)
 {
-	temp[0] = 0;
-	for (int k=0; k<Q;k++)
-	{
-		temp[0] = 0;
-		for (int i=0;i<Q;i++)
+	double sum = 0;
+	for (int i=0;i<Q;i++)
 		{
-			temp[0]+=M[k][i]*lat.f_[j][i];
+			sum+=M[k][i]*lat.f_[j][i];
 		}
-		lat.m_[j][k] = temp[0];
-	}
-	/*lat.m_[j][0] = M[0][0]*lat.f_[j][0] + M[0][1]*lat.f_[j][1] + M[0][2]*lat.f_[j][2] + M[0][3]*lat.f_[j][3] + M[0][4]*lat.f_[j][4] + M[0][5]*lat.f_[j][5] + M[0][6]*lat.f_[j][6] + M[0][7]*lat.f_[j][7] + M[0][8]*lat.f_[j][8];
-	lat.m_[j][1] = M[1][0]*lat.f_[j][0] + M[1][1]*lat.f_[j][1] + M[1][2]*lat.f_[j][2] + M[1][3]*lat.f_[j][3] + M[1][4]*lat.f_[j][4] + M[1][5]*lat.f_[j][5] + M[1][6]*lat.f_[j][6] + M[1][7]*lat.f_[j][7] + M[1][8]*lat.f_[j][8];	
-	lat.m_[j][2] = M[2][0]*lat.f_[j][0] + M[2][1]*lat.f_[j][1] + M[2][2]*lat.f_[j][2] + M[2][3]*lat.f_[j][3] + M[2][4]*lat.f_[j][4] + M[2][5]*lat.f_[j][5] + M[2][6]*lat.f_[j][6] + M[2][7]*lat.f_[j][7] + M[2][8]*lat.f_[j][8];	
-	lat.m_[j][3] = M[3][0]*lat.f_[j][0] + M[3][1]*lat.f_[j][1] + M[3][2]*lat.f_[j][2] + M[3][3]*lat.f_[j][3] + M[3][4]*lat.f_[j][4] + M[3][5]*lat.f_[j][5] + M[3][6]*lat.f_[j][6] + M[3][7]*lat.f_[j][7] + M[3][8]*lat.f_[j][8];	
-	lat.m_[j][4] = M[4][0]*lat.f_[j][0] + M[4][1]*lat.f_[j][1] + M[4][2]*lat.f_[j][2] + M[4][3]*lat.f_[j][3] + M[4][4]*lat.f_[j][4] + M[4][5]*lat.f_[j][5] + M[4][6]*lat.f_[j][6] + M[4][7]*lat.f_[j][7] + M[4][8]*lat.f_[j][8];	
-	lat.m_[j][5] = M[5][0]*lat.f_[j][0] + M[5][1]*lat.f_[j][1] + M[5][2]*lat.f_[j][2] + M[5][3]*lat.f_[j][3] + M[5][4]*lat.f_[j][4] + M[5][5]*lat.f_[j][5] + M[5][6]*lat.f_[j][6] + M[5][7]*lat.f_[j][7] + M[5][8]*lat.f_[j][8];	
-	lat.m_[j][6] = M[6][0]*lat.f_[j][0] + M[6][1]*lat.f_[j][1] + M[6][2]*lat.f_[j][2] + M[6][3]*lat.f_[j][3] + M[6][4]*lat.f_[j][4] + M[6][5]*lat.f_[j][5] + M[6][6]*lat.f_[j][6] + M[6][7]*lat.f_[j][7] + M[6][8]*lat.f_[j][8];	
-	lat.m_[j][7] = M[7][0]*lat.f_[j][0] + M[7][1]*lat.f_[j][1] + M[7][2]*lat.f_[j][2] + M[7][3]*lat.f_[j][3] + M[7][4]*lat.f_[j][4] + M[7][5]*lat.f_[j][5] + M[7][6]*lat.f_[j][6] + M[7][7]*lat.f_[j][7] + M[7][8]*lat.f_[j][8];	
-	lat.m_[j][8] = M[8][0]*lat.f_[j][0] + M[8][1]*lat.f_[j][1] + M[8][2]*lat.f_[j][2] + M[8][3]*lat.f_[j][3] + M[8][4]*lat.f_[j][4] + M[8][5]*lat.f_[j][5] + M[8][6]*lat.f_[j][6] + M[8][7]*lat.f_[j][7] + M[8][8]*lat.f_[j][8];		
-*/
+	lat.m_[j][k] = sum;
+	//printf("Lattice %d, valeur du moment n° %d : %0.3f\n",j,k,lat.m_[j][k]);
 }
+
 
 
 double** MRT_matrice_passage(int Q) //Matrice de passage entre les fonctions de distribution et les moments
@@ -151,7 +139,7 @@ double** MRT_matrice_passage(int Q) //Matrice de passage entre les fonctions de 
 }
 
 
-double** MRT_S(int Q, double nu, double cs, double dt, double tau_s, double tau_q) // Matrice S des temps de relaxation relatif aux différents moments
+double** MRT_S(int Q, double tau_s, double tau_q) // Matrice S des temps de relaxation relatif aux différents moments
 {
 	double** matrix = new double*[Q];
 	for ( int j=0;j<Q;j++)
@@ -168,11 +156,25 @@ double** MRT_S(int Q, double nu, double cs, double dt, double tau_s, double tau_
 	matrix[2][2] = 1.4;
 	matrix[3][3] = 1;
 	matrix[5][5] = 1;
+	
+	//matrix[0][0] = 1/tau_s;
+	//matrix[1][1] = 1/tau_s;
+	//matrix[2][2] = 1/tau_s;
+	//matrix[3][3] = 1/tau_s;
+	//matrix[5][5] = 1/tau_s;
+
+	
 
 	matrix[4][4] = 1/tau_q;
 	matrix[6][6] = 1/tau_q;
 	matrix[7][7] = 1/tau_s;
 	matrix[8][8] = 1/tau_s;
+
+	/*matrix[4][4] = 1/(0.5+3*nu);
+	matrix[6][6] = 1/(0.5+3*nu);
+	matrix[7][7] = 1/(0.5+3*nu);
+	matrix[8][8] = 1/(0.5+3*nu);*/
+	
 	return matrix;
 
 	//release memory
@@ -183,8 +185,8 @@ double** MRT_S(int Q, double nu, double cs, double dt, double tau_s, double tau_
 	delete [] matrix;
 }
 
-
-void MRT_collision( int j, double** f_star, double** C, Lattice lat,  int Q, double dt, double* temp)
+//La collision avec m et m0
+void MRT_collision( int j, double** f_star, double** C, Lattice lat,  int Q, double* temp)
 {
 	for (int k=0;k<Q;k++)
 	{
@@ -195,16 +197,20 @@ void MRT_collision( int j, double** f_star, double** C, Lattice lat,  int Q, dou
 		}
 		f_star[j][k] = lat.f_[j][k]-temp[0];
 	}
-	/*f_star[j][0] = lat.f_[j][0] - (C[0][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[0][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[0][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[0][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[0][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[0][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[0][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[0][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[0][8]*(lat.m_[j][8]-lat.m0_[j][8]));
-	f_star[j][1] = lat.f_[j][1] - (C[1][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[1][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[1][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[1][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[1][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[1][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[1][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[1][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[1][8]*(lat.m_[j][8]-lat.m0_[j][8]));
-	f_star[j][2] = lat.f_[j][2] - (C[2][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[2][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[2][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[2][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[2][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[2][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[2][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[2][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[2][8]*(lat.m_[j][8]-lat.m0_[j][8]));
-	f_star[j][3] = lat.f_[j][3] - (C[3][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[3][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[3][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[3][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[3][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[3][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[3][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[3][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[3][8]*(lat.m_[j][8]-lat.m0_[j][8]));
-	f_star[j][4] = lat.f_[j][4] - (C[4][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[4][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[4][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[4][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[4][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[4][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[4][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[4][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[4][8]*(lat.m_[j][8]-lat.m0_[j][8]));
-	f_star[j][5] = lat.f_[j][5] - (C[5][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[5][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[5][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[5][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[5][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[5][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[5][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[5][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[5][8]*(lat.m_[j][8]-lat.m0_[j][8]));
-	f_star[j][6] = lat.f_[j][6] - (C[6][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[6][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[6][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[6][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[6][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[6][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[6][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[6][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[6][8]*(lat.m_[j][8]-lat.m0_[j][8]));
-	f_star[j][7] = lat.f_[j][7] - (C[7][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[7][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[7][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[7][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[7][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[7][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[7][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[7][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[7][8]*(lat.m_[j][8]-lat.m0_[j][8]));
-	f_star[j][8] = lat.f_[j][8] - (C[8][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[8][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[8][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[8][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[8][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[8][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[8][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[8][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[8][8]*(lat.m_[j][8]-lat.m0_[j][8]));
-*/
+}
+
+//La collision avec f et f0 (on a donc une différence dans la matrice de passage)
+void MRT_collision_v2( int j, double** f_star, double** C, Lattice lat,  int Q, double* temp)
+{
+	for (int k=0;k<Q;k++)
+	{
+		temp[0]=0;
+		for ( int i=0;i<Q;i++)
+		{
+		temp[0]+=C[k][i]*(lat.f_[j][i]-lat.f0_[j][i]);
+		}
+		f_star[j][k] = lat.f_[j][k]-temp[0];
+	}
 }
 
 void MRT_forcing_collision(int j, double** f_star, double** C, Lattice lat, double dt, double** F, double** C3, double** F_bar, int Q, double* temp)
@@ -221,31 +227,10 @@ void MRT_forcing_collision(int j, double** f_star, double** C, Lattice lat, doub
 		F[j][k] = temp[0];
 		f_star[j][k] = lat.f_[j][k] -temp[1] + dt*F[j][k];
 	}
-	/*F[j][0] = C3[0][0]*F_bar[j][0] + C3[0][1]*F_bar[j][1] + C3[0][2]*F_bar[j][2] + C3[0][3]*F_bar[j][3] + C3[0][4]*F_bar[j][4] + C3[0][5]*F_bar[j][5] + C3[0][6]*F_bar[j][6] + C3[0][7]*F_bar[j][7] + C3[0][8]*F_bar[j][8];
-	F[j][1] = C3[1][0]*F_bar[j][0] + C3[1][1]*F_bar[j][1] + C3[1][2]*F_bar[j][2] + C3[1][3]*F_bar[j][3] + C3[1][4]*F_bar[j][4] + C3[1][5]*F_bar[j][5] + C3[1][6]*F_bar[j][6] + C3[1][7]*F_bar[j][7] + C3[1][8]*F_bar[j][8];
-	F[j][2] = C3[2][0]*F_bar[j][0] + C3[2][1]*F_bar[j][1] + C3[2][2]*F_bar[j][2] + C3[2][3]*F_bar[j][3] + C3[2][4]*F_bar[j][4] + C3[2][5]*F_bar[j][5] + C3[2][6]*F_bar[j][6] + C3[2][7]*F_bar[j][7] + C3[2][8]*F_bar[j][8];
-	F[j][3] = C3[3][0]*F_bar[j][0] + C3[3][1]*F_bar[j][1] + C3[3][2]*F_bar[j][2] + C3[3][3]*F_bar[j][3] + C3[3][4]*F_bar[j][4] + C3[3][5]*F_bar[j][5] + C3[3][6]*F_bar[j][6] + C3[3][7]*F_bar[j][7] + C3[3][8]*F_bar[j][8];
-	F[j][4] = C3[4][0]*F_bar[j][0] + C3[4][1]*F_bar[j][1] + C3[4][2]*F_bar[j][2] + C3[4][3]*F_bar[j][3] + C3[4][4]*F_bar[j][4] + C3[4][5]*F_bar[j][5] + C3[4][6]*F_bar[j][6] + C3[4][7]*F_bar[j][7] + C3[4][8]*F_bar[j][8];
-	F[j][5] = C3[5][0]*F_bar[j][0] + C3[5][1]*F_bar[j][1] + C3[5][2]*F_bar[j][2] + C3[5][3]*F_bar[j][3] + C3[5][4]*F_bar[j][4] + C3[5][5]*F_bar[j][5] + C3[5][6]*F_bar[j][6] + C3[5][7]*F_bar[j][7] + C3[5][8]*F_bar[j][8];
-	F[j][6] = C3[6][0]*F_bar[j][0] + C3[6][1]*F_bar[j][1] + C3[6][2]*F_bar[j][2] + C3[6][3]*F_bar[j][3] + C3[6][4]*F_bar[j][4] + C3[6][5]*F_bar[j][5] + C3[6][6]*F_bar[j][6] + C3[6][7]*F_bar[j][7] + C3[6][8]*F_bar[j][8];
-	F[j][7] = C3[7][0]*F_bar[j][0] + C3[7][1]*F_bar[j][1] + C3[7][2]*F_bar[j][2] + C3[7][3]*F_bar[j][3] + C3[7][4]*F_bar[j][4] + C3[7][5]*F_bar[j][5] + C3[7][6]*F_bar[j][6] + C3[7][7]*F_bar[j][7] + C3[7][8]*F_bar[j][8];
-	F[j][8] = C3[8][0]*F_bar[j][0] + C3[8][1]*F_bar[j][1] + C3[8][2]*F_bar[j][2] + C3[8][3]*F_bar[j][3] + C3[8][4]*F_bar[j][4] + C3[8][5]*F_bar[j][5] + C3[8][6]*F_bar[j][6] + C3[8][7]*F_bar[j][7] + C3[8][8]*F_bar[j][8];
-
-	
-	f_star[j][0] = lat.f_[j][0] - (C[0][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[0][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[0][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[0][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[0][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[0][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[0][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[0][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[0][8]*(lat.m_[j][8]-lat.m0_[j][8])) + dt*F[j][0];
-	f_star[j][1] = lat.f_[j][1] - (C[1][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[1][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[1][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[1][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[1][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[1][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[1][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[1][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[1][8]*(lat.m_[j][8]-lat.m0_[j][8])) + dt*F[j][1];
-	f_star[j][2] = lat.f_[j][2] - (C[2][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[2][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[2][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[2][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[2][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[2][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[2][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[2][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[2][8]*(lat.m_[j][8]-lat.m0_[j][8])) + dt*F[j][2];
-	f_star[j][3] = lat.f_[j][3] - (C[3][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[3][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[3][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[3][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[3][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[3][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[3][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[3][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[3][8]*(lat.m_[j][8]-lat.m0_[j][8])) + dt*F[j][3];
-	f_star[j][4] = lat.f_[j][4] - (C[4][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[4][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[4][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[4][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[4][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[4][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[4][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[4][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[4][8]*(lat.m_[j][8]-lat.m0_[j][8])) + dt*F[j][4];
-	f_star[j][5] = lat.f_[j][5] - (C[5][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[5][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[5][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[5][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[5][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[5][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[5][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[5][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[5][8]*(lat.m_[j][8]-lat.m0_[j][8])) + dt*F[j][5];
-	f_star[j][6] = lat.f_[j][6] - (C[6][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[6][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[6][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[6][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[6][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[6][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[6][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[6][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[6][8]*(lat.m_[j][8]-lat.m0_[j][8])) + dt*F[j][6];
-	f_star[j][7] = lat.f_[j][7] - (C[7][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[7][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[7][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[7][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[7][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[7][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[7][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[7][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[7][8]*(lat.m_[j][8]-lat.m0_[j][8])) + dt*F[j][7];
-	f_star[j][8] = lat.f_[j][8] - (C[8][0]*(lat.m_[j][0]-lat.m0_[j][0]) + C[8][1]*(lat.m_[j][1]-lat.m0_[j][1]) + C[8][2]*(lat.m_[j][2]-lat.m0_[j][2]) + C[8][3]*(lat.m_[j][3]-lat.m0_[j][3]) + C[8][4]*(lat.m_[j][4]-lat.m0_[j][4]) + C[8][5]*(lat.m_[j][5]-lat.m0_[j][5]) + C[8][6]*(lat.m_[j][6]-lat.m0_[j][6]) + C[8][7]*(lat.m_[j][7]-lat.m0_[j][7]) + C[8][8]*(lat.m_[j][8]-lat.m0_[j][8])) + dt*F[j][8];
-*/
 }
 
 
-void MRT_equilibre(int j,Lattice lat, double** M)
+void MRT_equilibre(int j,Lattice lat)
 {
 	lat.m0_[j][0] = lat.rho_[j] * 1; //rho
 	lat.m0_[j][1] = lat.rho_[j] * (-2 + 3 * (lat.u_[j][0]*lat.u_[j][0] + lat.u_[j][1] * lat.u_[j][1])); //e = rho * (-2 + 3 * |u|^2)
@@ -256,6 +241,19 @@ void MRT_equilibre(int j,Lattice lat, double** M)
 	lat.m0_[j][6] = lat.rho_[j] * (-lat.u_[j][1]); //qy = - rho * v
 	lat.m0_[j][7] = lat.rho_[j] * (lat.u_[j][0]-lat.u_[j][0] - lat.u_[j][1]*lat.u_[j][1]); //pxx = rho * (u*u - v*v)
 	lat.m0_[j][8] = lat.rho_[j] * (lat.u_[j][0]*lat.u_[j][1]);//pxy = rho * u * v
+}
+
+void MRT_equilibre_v2(int j, Lattice lat, double** M, int Q, double* temp)
+{
+	for (int k=0;k<Q;k++)
+	{
+		temp[0]=0;
+		for ( int i=0;i<Q;i++)
+		{
+			temp[0]+=M[k][i]*lat.f0_[j][i];
+		}
+		lat.m0_[j][k]= temp[0];
+	}
 }
 
 // matrix inversion
@@ -354,6 +352,14 @@ void matrix_product(double **A, double **B,double **C,  int Q) // produit matric
 	{
 		for ( int j=0;j<Q;j++)
 		{
+			C[i][j] = 0;
+		}
+	}
+	for ( int i=0;i<Q;i++)
+	{
+		for ( int j=0;j<Q;j++)
+		{
+			C[i][j] = 0;
 			for ( int k=0;k<Q;k++)
 			{
 				C[i][j]+= A[i][k]*B[k][j];
@@ -398,5 +404,5 @@ void affichage_matrix(int Q, double** matrix)
 		}
 		printf("\n");
 	}
-
+	printf("\n");
 }
