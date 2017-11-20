@@ -121,15 +121,23 @@ void writeLattice(Domain& domain, string label, double Kn,double mu,char name, i
     ostringstream oss;
 
     // Write iteration number to flux
-	oss << "LBM";
+	//oss << name;
+	oss << "circ_stag_0.4344_nu0.135";
+	//oss << "DBB_Kn_0.1";
+	//oss << "DBB_Kn_0.25";
+	//oss << "DBB_Kn_0.5";
+	//oss << "DBB_Kn_0.75";
+	//oss << "DBB_Kn_1";
+	//oss << "DBB_Kn_1.5";
 	oss << "_";
+	//oss << "DBB";
     oss << iter;
 	//oss << "_poro";
 	//oss << Kn;
-	oss << "_";
-	//oss << mu;
 	//oss << "_";
-	oss << name;
+	//oss << mu;
+	
+	//oss << name;
 
     // Establish the file name
     string filename = "output/"+label+"_"+oss.str()+".vtk";

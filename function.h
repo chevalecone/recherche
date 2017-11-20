@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <time.h>
 #include <iostream>
+#include "lattice.h"
 
 
 //*************************CALCULS MACROSCOPIQUES**************************//
@@ -12,6 +13,8 @@ void velocity( int j, int D,  int Q, double** xi, Lattice lat, double sigma);
 //***************************EQUILIBRE**************************************//
 double*** Qi_function (int k, double cs, double** xi, int D, int Q);
 void fi_equilibre (int j, int k, double rho, double cs, Lattice lat, double* u, double** xi, int D, double*** Qi, double* buffer, double* omega_i,double sigma);
+void fi_equilibre_v2 (int j, int k, double rho, double cs, Lattice lat, double* u, double** xi, int D, double*** Qi, double* buffer, double* omega_i, double sigma, double* buffer2);
+void simplified_fi_equilibre (int j, double rho, double cs, Lattice lat, double* u, double** xi, int D, double* omega_i, double* feq, int Q);
 void PI_neq_inlet(double** Pi_neq, int j, int Q, Lattice lat, double*** Qi, double* buffer, int* bb);
 void PI_neq_outlet(double** Pi_neq, int j, int Q, Lattice lat, double*** Qi, double* buffer, int* bb);
 void fi_bar(double* omega_i, double***Qi, double** Pi_neq, double cs, int j, int D, Lattice lat, double* buffer, int Q);
@@ -37,6 +40,7 @@ void pos_solide (bool* typeLat,  int* pos, int nx, int ny);
 //CYLINDRE CARRE
 //Matrice des 4 coins de la section carrée du cylindre
 void SquareCylinder(double abscisse, double ordonnee, double diametre, double** coin);
+void typeCircular(double abscisse, double ordonnee, double diametre, int N, double** position, bool* typeLat);
 //Remplit typeLat pour un cylindre carré
 void typeSquare( int N, double** coin, double** position, bool* typeLat);
 double porosite (bool* typeLat, int nombre, int N);

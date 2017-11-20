@@ -80,12 +80,12 @@ void periodic_WE_BC( int j,int nx, int ny,  int cas, Lattice lat, double** f_sta
 		case 5://S-O
 		lat.f_[j][1] = f_star[nx-1][1]; //Conditions périodique en sortie
 		lat.f_[j][8] = f_star[2*nx-1][8];
-		//lat.f_[j][5] = f_star[nx*ny-1][5];
+		lat.f_[j][5] = f_star[nx*ny-1][5];
 		break;
 		case 6://S-E
 		lat.f_[j][3] = f_star[0][3]; //Condition périodique en sortie
 		lat.f_[j][7] = f_star[nx][7];
-		//lat.f_[j][6] = f_star[nx*ny-nx][6];
+		lat.f_[j][6] = f_star[nx*ny-nx][6];
 		break;
 		case 7://N-O
 		lat.f_[j][1] = f_star[nx*ny-1][1];//Condition périodique en entrée
@@ -96,6 +96,50 @@ void periodic_WE_BC( int j,int nx, int ny,  int cas, Lattice lat, double** f_sta
 		lat.f_[j][3] = f_star[j-nx+1][3]; //Condition périodique en entrée
 		lat.f_[j][6] = f_star[j-2*nx+1][6];
 		//lat.f_[j][7] = f_star[0][7];
+		break;
+	}
+}
+
+void periodic_pressure_WE_BC (int j, int nx, int ny, int cas, Lattice lat, double** f_star, double dRHO, double sigma, double cs)
+{
+	
+		switch (cas)
+	{
+		case 1: //ouest
+		sigma = 1./3*(dRHO-1 -(lat.f_[j][0]+lat.f_[j][2]+lat.f_[j][4]-(lat.f_[j+nx-1][0]+lat.f_[j+nx-1][2]+lat.f_[j+nx-1][4])));
+		lat.f_[j][1] = lat.f_[j+nx-1][1] + sigma; //Condition périodique en entrée
+		lat.f_[j][5] = lat.f_[j+nx-1][5] + 0.25*sigma;
+		lat.f_[j][8] = lat.f_[j+nx-1][8] + 0.25*sigma;
+		break;
+		case 2: //est
+		sigma = 1./3*(dRHO -1-(lat.f_[j-nx+1][0]+lat.f_[j-nx+1][2]+lat.f_[j-nx+1][4]-(lat.f_[j][0]+lat.f_[j][2]+lat.f_[j][4])));
+		lat.f_[j][3] = lat.f_[j-nx+1][3] - sigma; //Condition périodique en sortie
+		lat.f_[j][6] = lat.f_[j-nx+1][6] - 0.25*sigma;
+		lat.f_[j][7] = lat.f_[j-nx+1][7] - 0.25*sigma;
+		break;
+		case 5://S-O
+		sigma = 1./3*(dRHO -1-(lat.f_[j][0]+lat.f_[j][2]+lat.f_[j][4]-(lat.f_[j+nx-1][0]+lat.f_[j+nx-1][2]+lat.f_[j+nx-1][4])));
+		lat.f_[j][1] = lat.f_[j+nx-1][1] + sigma; //Condition périodique en entrée
+		lat.f_[j][5] = lat.f_[j+nx-1][5] + 0.25*sigma;
+		lat.f_[j][8] = lat.f_[j+nx-1][8] + 0.25*sigma;
+		break;
+		case 6://S-E
+		sigma = 1./3*(dRHO -1-(lat.f_[j-nx+1][0]+lat.f_[j-nx+1][2]+lat.f_[j-nx+1][4]-(lat.f_[j][0]+lat.f_[j][2]+lat.f_[j][4])));
+		lat.f_[j][3] = lat.f_[j-nx+1][3] - sigma; //Condition périodique en sortie
+		lat.f_[j][6] = lat.f_[j-nx+1][6] - 0.25*sigma;
+		lat.f_[j][7] = lat.f_[j-nx+1][7] - 0.25*sigma;
+		break;
+		case 7://N-O
+		sigma = 1./3*(dRHO -1-(lat.f_[j][0]+lat.f_[j][2]+lat.f_[j][4]-(lat.f_[j+nx-1][0]+lat.f_[j+nx-1][2]+lat.f_[j+nx-1][4])));
+		lat.f_[j][1] = lat.f_[j+nx-1][1] + sigma; //Condition périodique en entrée
+		lat.f_[j][5] = lat.f_[j+nx-1][5] + 0.25*sigma;
+		lat.f_[j][8] = lat.f_[j+nx-1][8] + 0.25*sigma;
+		break;
+		case 8://N-E
+		sigma = 1./3*(dRHO-1 -(lat.f_[j-nx+1][0]+lat.f_[j-nx+1][2]+lat.f_[j-nx+1][4]-(lat.f_[j][0]+lat.f_[j][2]+lat.f_[j][4])));
+		lat.f_[j][3] = lat.f_[j-nx+1][3] - sigma; //Condition périodique en sortie
+		lat.f_[j][6] = lat.f_[j-nx+1][6] - 0.25*sigma;
+		lat.f_[j][7] = lat.f_[j-nx+1][7] - 0.25*sigma;
 		break;
 	}
 }
@@ -478,6 +522,59 @@ void CBBSR_S_BC(int j, int cas, Lattice lat, double r, double** f_star)
 	}
 }
 
+void CBBSR_N_BC_Couette(int j, int cas, Lattice lat, double r, double** f_star, double uw, double** xi, double cs, double* omega_i)
+{
+	switch(cas)
+	{
+		case 3: //N
+		lat.f_[j][4] = f_star[j][2];
+		lat.f_[j][8] = r*f_star[j][6] + (1-r)*f_star[j][5]+2*r*omega_i[8]*lat.rho_[j]*uw/(cs*cs)*xi[8][0];
+		lat.f_[j][7] = r*f_star[j][5] + (1-r)*f_star[j][6]+2*r*omega_i[7]*lat.rho_[j]*uw/(cs*cs)*xi[7][0];
+		break;
+		case 7: //NO
+		lat.f_[j][4] = f_star[j][2];
+		lat.f_[j][8] = r*f_star[j][6] + (1-r)*f_star[j][5]+2*r*omega_i[8]*lat.rho_[j]*uw/(cs*cs)*xi[8][0];
+		lat.f_[j][7] = r*f_star[j][5] + (1-r)*f_star[j][6]+2*r*omega_i[7]*lat.rho_[j]*uw/(cs*cs)*xi[7][0];
+		break;
+		case 8: //NE
+		lat.f_[j][4] = f_star[j][2];
+		lat.f_[j][8] = r*f_star[j][6] + (1-r)*f_star[j][5]+2*r*omega_i[8]*lat.rho_[j]*uw/(cs*cs)*xi[8][0];
+		lat.f_[j][7] = r*f_star[j][5] + (1-r)*f_star[j][6]+2*r*omega_i[7]*lat.rho_[j]*uw/(cs*cs)*xi[7][0];
+		break;
+	}
+}
+
+
+
+void DBB_N_BC_Couette(int j, int cas, Lattice lat, double beta, double** f_star,double cs, double* Uw, double* buffer, double* omega_i,double** xi, int D, int Q, double*** Qi, double sigma)
+{
+	double* buffer2 = new double[Q];
+	/*for (int k=0;k<Q;k++)
+	{
+		fi_equilibre_v2 (j,k,lat.rho_[j],cs,lat,Uw,xi,D,Qi,buffer,omega_i,sigma,buffer2);
+	}*/
+	simplified_fi_equilibre (j,lat.rho_[j],cs,lat,Uw, xi,D,omega_i, buffer2,Q); //Calcul de fi,eq au mur (densité du mur, vitesse du mur)
+
+	switch(cas)
+	{	
+		case 3: //N
+		lat.f_[j][4] =  beta* f_star[j][2] + (1-beta)*(f_star[j][2]+f_star[j][5]+f_star[j][6])/(buffer2[2]+buffer2[5]+buffer2[6])*buffer2[4];
+		lat.f_[j][8] =  beta* f_star[j][6] + (1-beta)*(f_star[j][2]+f_star[j][5]+f_star[j][6])/(buffer2[2]+buffer2[5]+buffer2[6])*buffer2[8];
+		lat.f_[j][7] =  beta* f_star[j][5] + (1-beta)*(f_star[j][2]+f_star[j][5]+f_star[j][6])/(buffer2[2]+buffer2[5]+buffer2[6])*buffer2[7];
+		break;
+		case 7: //NO
+		lat.f_[j][4] =  beta* f_star[j][2] + (1-beta)*(f_star[j][2]+f_star[j][5]+f_star[j][6])/(buffer2[2]+buffer2[5]+buffer2[6])*buffer2[4];
+		lat.f_[j][8] =  beta* f_star[j][6] + (1-beta)*(f_star[j][2]+f_star[j][5]+f_star[j][6])/(buffer2[2]+buffer2[5]+buffer2[6])*buffer2[8];
+		lat.f_[j][7] =  beta* f_star[j][5] + (1-beta)*(f_star[j][2]+f_star[j][5]+f_star[j][6])/(buffer2[2]+buffer2[5]+buffer2[6])*buffer2[7];
+		break;
+		case 8: //NE
+		lat.f_[j][4] =  beta* f_star[j][2] + (1-beta)*(f_star[j][2]+f_star[j][5]+f_star[j][6])/(buffer2[2]+buffer2[5]+buffer2[6])*buffer2[4];
+		lat.f_[j][8] =  beta* f_star[j][6] + (1-beta)*(f_star[j][2]+f_star[j][5]+f_star[j][6])/(buffer2[2]+buffer2[5]+buffer2[6])*buffer2[8];
+		lat.f_[j][7] =  beta* f_star[j][5] + (1-beta)*(f_star[j][2]+f_star[j][5]+f_star[j][6])/(buffer2[2]+buffer2[5]+buffer2[6])*buffer2[7];
+		break;
+	}
+	delete[] buffer2;
+}
 
 void DBB_N_BC(int j, int cas, Lattice lat, double beta, double** f_star)
 {
@@ -488,7 +585,7 @@ void DBB_N_BC(int j, int cas, Lattice lat, double beta, double** f_star)
 		lat.f_[j][8] = beta* f_star[j][6] + (1-beta)*1./6.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
 		lat.f_[j][7] = beta* f_star[j][5] + (1-beta)*1./6.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
 		break;
-		case 7: //NO
+		/*case 7: //NO
 		lat.f_[j][4] = beta* f_star[j][2] + (1-beta)*2./3.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
 		lat.f_[j][8] = beta* f_star[j][6] + (1-beta)*1./6.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
 		lat.f_[j][7] = beta* f_star[j][5] + (1-beta)*1./6.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
@@ -497,9 +594,10 @@ void DBB_N_BC(int j, int cas, Lattice lat, double beta, double** f_star)
 		lat.f_[j][4] = beta* f_star[j][2] + (1-beta)*2./3.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
 		lat.f_[j][8] = beta* f_star[j][6] + (1-beta)*1./6.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
 		lat.f_[j][7] = beta* f_star[j][5] + (1-beta)*1./6.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
-		break;
+		break;*/
 	}
 }
+
 void DBB_S_BC(int j, int cas, Lattice lat, double beta, double** f_star)
 {
 		switch (cas)
@@ -509,16 +607,16 @@ void DBB_S_BC(int j, int cas, Lattice lat, double beta, double** f_star)
 		lat.f_[j][5] = beta* f_star[j][7] + (1-beta)*1./6.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
 		lat.f_[j][6] = beta* f_star[j][8] + (1-beta)*1./6.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
 		break;
-		case 5: //SO
+		/*case 5: //SO
 		lat.f_[j][2] = beta* f_star[j][4] + (1-beta)*2./3.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
-		lat.f_[j][5] = beta* f_star[j][7] + (1-beta)*1./6.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
+		lat.f_[j][5] = beta * f_star[j][7] + (1-beta)*1./6.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
 		lat.f_[j][6] = beta* f_star[j][8] + (1-beta)*1./6.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
 		break;
 		case 6: //SE
 		lat.f_[j][2] = beta* f_star[j][4] + (1-beta)*2./3.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
 		lat.f_[j][5] = beta* f_star[j][7] + (1-beta)*1./6.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
 		lat.f_[j][6] = beta* f_star[j][8] + (1-beta)*1./6.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
-		break;
+		break;*/
 	}
 }
 

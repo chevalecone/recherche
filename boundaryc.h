@@ -7,6 +7,7 @@ void propagation( int const& j, Lattice lat, double** f_star,bool* typeLat, int*
 
 void periodic_WE_BC( int j,int nx, int ny,  int cas, Lattice lat, double** f_star);
 void periodic_NS_BC( int j,int nx, int ny,  int cas, Lattice lat, double** f_star);
+void periodic_pressure_WE_BC (int j, int nx, int ny, int cas, Lattice lat, double** f_star, double dRHO, double sigma, double cs);
 
 
 void bounceback_N_BC( int j, int cas, Lattice lat, double** f_star);
@@ -30,11 +31,13 @@ void vitesse_out_BC( int j,int nx, int cas, Lattice lat, double xi_r,double** v_
 //COMBINED BOUNCE-BACK SPECULAR REFLECTION (CBBSR)
 void CBBSR_N_BC(int j, int cas, Lattice lat, double r, double** f_star);
 void CBBSR_S_BC(int j, int cas, Lattice lat, double r, double** f_star);
+void CBBSR_N_BC_Couette(int j, int cas, Lattice lat, double r, double** f_star, double uw, double** xi, double cs, double* omega_i);
 
 
 //DIFFUSE BOUNCE-BACK (DBB) non automatisé (ie. simplifié pour le D2Q9) avec une vitesse u_wall nulle
 void DBB_N_BC(int j, int cas, Lattice lat, double beta, double** f_star);
 void DBB_S_BC(int j, int cas, Lattice lat, double beta, double** f_star);
+void DBB_N_BC_Couette(int j, int cas, Lattice lat, double beta, double** f_star,double cs, double* Uw, double* buffer, double* omega_i,double** xi, int D, int Q, double*** Qi, double sigma);
 
 //COMBINED SPECULAR AND DIFFUSIVE REFLECTION (MR)
 void MR_N_BC(int j, int cas, Lattice lat, double beta, double** f_star);

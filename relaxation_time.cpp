@@ -157,23 +157,12 @@ double** MRT_S(int Q, double tau_s, double tau_q) // Matrice S des temps de rela
 	matrix[3][3] = 1;
 	matrix[5][5] = 1;
 	
-	//matrix[0][0] = 1/tau_s;
-	//matrix[1][1] = 1/tau_s;
-	//matrix[2][2] = 1/tau_s;
-	//matrix[3][3] = 1/tau_s;
-	//matrix[5][5] = 1/tau_s;
-
-	
 
 	matrix[4][4] = 1/tau_q;
 	matrix[6][6] = 1/tau_q;
 	matrix[7][7] = 1/tau_s;
 	matrix[8][8] = 1/tau_s;
 
-	/*matrix[4][4] = 1/(0.5+3*nu);
-	matrix[6][6] = 1/(0.5+3*nu);
-	matrix[7][7] = 1/(0.5+3*nu);
-	matrix[8][8] = 1/(0.5+3*nu);*/
 	
 	return matrix;
 
@@ -184,6 +173,23 @@ double** MRT_S(int Q, double tau_s, double tau_q) // Matrice S des temps de rela
 	}
 	delete [] matrix;
 }
+
+
+void MRT_S(int Q, double tau_s, double tau_q, double** Si) // Matrice S des temps de relaxation relatif aux différents moments
+{
+	
+	Si[0][0] = 1;
+	Si[1][1] = 1.4;
+	Si[2][2] = 1.4;
+	Si[3][3] = 1;
+	Si[5][5] = 1;
+	
+	Si[4][4] = 1/tau_q;
+	Si[6][6] = 1/tau_q;
+	Si[7][7] = 1/tau_s;
+	Si[8][8] = 1/tau_s;
+}
+
 
 //La collision avec m et m0
 void MRT_collision( int j, double** f_star, double** C, Lattice lat,  int Q, double* temp)

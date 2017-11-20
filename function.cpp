@@ -34,9 +34,9 @@ double pscal(double* a,double* b, int D, double sigma) //fonction pour le produi
 void density ( int j, int Q, Lattice lat, double sigma) //fonction pour la somme des fi pour calculer la masse volumique
 {
 	sigma = 0;
-	for ( int i=0;i<Q;i++)
+	for ( int k=0;k<Q;k++)
 	{
-		sigma+=lat.f_[j][i];
+		sigma+=lat.f_[j][k];
 	}
 	lat.rho_[j] = sigma;
 }
@@ -531,6 +531,51 @@ void fi_equilibre (int j, int k, double rho, double cs, Lattice lat, double* u, 
 	delete[] sum3;
 }
 
+void fi_equilibre_v2 (int j, int k, double rho, double cs, Lattice lat, double* u, double** xi, int D, double*** Qi, double* buffer, double* omega_i, double sigma, double* buffer2)
+{
+	for (int i =0;i<10;i++)
+	{
+		buffer[i] = 0;
+	}
+	double** sum3 = new double*[D];
+	for (int i=0;i<D;i++)
+	{
+		sum3[i] = new double[D];
+	}
+	buffer[0] = pscal(xi[k],u,D,sigma);
+	
+	for (int i =0;i<D;i++)
+	{
+		for (int l =0;l<D;l++)
+		{
+			sum3[i][l] = u[i]*u[l];
+		}
+	}
+	for (int i=0;i<D;i++)
+	{
+		for (int l=0;l<D;l++)
+		{
+			buffer[1]+=Qi[k][i][l]*sum3[l][i];
+		}
+	}
+	buffer2[k] = omega_i[k]*rho*(1+1/(cs*cs)*buffer[0] + 1/(2*cs*cs*cs*cs)*buffer[1]);
+	for (int i =0;i<D;i++)
+	{
+		delete[]sum3[i];
+	}
+	delete[] sum3;
+	delete[] buffer;
+}
+
+
+	void simplified_fi_equilibre (int j, double rho, double cs, Lattice lat, double* u, double** xi, int D, double* omega_i, double* feq, int Q)
+{
+	for (int k=0;k<Q;k++)
+	{
+		feq[k] = omega_i[k]*rho*(1+1/(cs*cs)*(xi[k][0]*u[0]+xi[k][1]*u[1])+(xi[k][0]*u[0]+xi[k][1]*u[1])*(xi[k][0]*u[0]+xi[k][1]*u[1])/(2*cs*cs*cs*cs)-(u[0]*u[0]+u[1]*u[1])/(2*cs*cs));
+	}
+}
+
 //0.0564 0.1128 0.1692 0.2257 0.3385 0.4514 0.6670 0.9027 1.1284 1.6926 2.2568 3.3851 4.5135 6.7703 9.0270 11.2838 16.9257
 char FileName(double Kn)
 {
@@ -601,6 +646,10 @@ char FileName(double Kn)
 	else if (Kn==16.9257)
 	{
 		return 'L';
+	}
+	else
+	{
+		return 'Z';
 	}
 }
 
@@ -715,8 +764,6 @@ void tab_voisin(int N, int Q, bool* typeLat, int* tab_Voisin, int** conn)
 		}
 	}
 }
-
-
 
 
 

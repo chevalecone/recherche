@@ -12,6 +12,7 @@ void MRT_forcing(int j, int Q, double cs, double* omega_i, double** xi, double* 
 
 double** MRT_matrice_passage(int Q); //Matrice de passage des populations aux moments (Gram Schmidt)
 double** MRT_S(int Q, double tau_s, double tau_q); //Matrice de relaxation
+void MRT_S(int Q, double tau_s, double tau_q, double** Si);
 void matrix_product(double **A, double **B,double **C,  int Q); //Produit matriciel
 
 

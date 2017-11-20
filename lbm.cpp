@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <omp.h>
-#include <string>
+#include <cstring>
 
 // Local includes
 #include "domain.h"
@@ -22,32 +22,36 @@
 #include "relaxation_time.h"
 #include "rarefied_models.h"
 #include "compute_quantities.h"
-
+#include "slip_velocity.h"
+#include "wall_function.h"
+#include "initialisation.h"
 # define M_PI  3.14159265358979323846
 
 //Variables de la simulation
 # define RHO 1
-# define MU 0.3
+# define MU 0.135
 # define DX 1
 
-# define dRHO 1
-# define dFi 0.0001
+# define dRHO 1.5
+# define dFi 0.000000
 # define U_IN_x 0.0
 # define U_IN_y 0.
 # define U_OUT_x 0.
 # define U_OUT_y 0.
+# define UW_X 0
+# define UW_Y 0
 # define R 1
 # define BETA 1
 # define PORO 0.66
-//0.0564 0.1128 0.1692 0.2257 0.3385 0.4514 0.6670 0.9027 1.1284 1.6926 2.2568 3.3851 4.5135 6.7703 9.0270 11.2838 16.9257 
+// 0.0564 0.1128 0.1692 0.2257 0.3385 0.4514     0.6670 0.9027 1.1284 1.6926 2.2568 3.3851    4.5135 6.7703 9.0270 11.2838 16.9257 
 //0.0564 0.1692 0.3385 1.6926 3.3851
-# define KNU  0.1128
+# define KNU  0.388
 # define XMIN 0
-# define XMAX 10
+# define XMAX 100
 # define YMIN 0
-# define YMAX 128
-# define OUTPUT 300
-# define PRECISION 0.000000001
+# define YMAX 100
+# define OUTPUT 1000
+# define PRECISION 0.0000001
 
 
 int main()
@@ -109,10 +113,11 @@ int main()
 	//********************************ALLOCATION DE LA MEMOIRE*************************************//
 
 	//Célérité de la lattice, Re, Vitesse max, variables pour la convergence en temps, force de drag et lift	
-	double cs = 1/sqrt(3)*xi_r,Re,Umax,valeur1=0,valeur2=0,erreur=1,df,lf,sigma,w_time=0,Mach, poro, ttsity;
+	double cs = 1/sqrt(3)*xi_r,Re,Umax,valeur1=0,valeur2=0,erreur=1,df,lf,sigma,w_time=0,Mach, poro, ttsity, Kne, Knee, lambdae;
 	int i,j,k,l,m;
 	double* buffer = new double[10];
-	double* PHI = new double[N+1]; //Les wall function pour chaque lattice
+	double* buffer2 = new double[10];
+	double* test = new double[5];
 	double** rank = new double*[ny];
 	int* tab_Voisin = new int[N];
 	double** rank2 = new double*[ny];
@@ -129,11 +134,13 @@ int main()
 	int **conn = new int*[N]; //Matrice de connectivité des lattices
 	bool* typeLat = new bool[N]; //booléen pour déterminer si le noeud est solide (true) ou fluide (false)
 	double** S = new double*[N];
-	double* A = new double[2]; //Coefficient du slip velocity
 	
 	double **xi = new double*[Q];//Tableau des vecteurs des vitesses du modèle
 	double** Pi_neq = new double*[D];
 	double omega_i[Q];//Vecteur des poids en fonction de la direction de la vitesse dans la lattice
+	double* Uw = new double[2];
+	 Uw[0] = UW_X;
+	 Uw[1] = UW_Y;
 	
 	int* bb = new  int[Q]; //array des populations de bounceback
 	bounceback_neighbour(bb,Q); //remplissage de la matrice bb
@@ -203,26 +210,26 @@ int main()
 	}
 
 //******************************CREATION DES SOLIDES******************************************//
-	/*//CYLINDRE A SECTION CARREE
-	double ratio = 0.31,nombre =0;
+	//CYLINDRE A SECTION CARREE
+	double ratio = 0.6,nombre =0;
 	double** cylinder1  = new double*[4];
 	double** cylinder2  = new double*[4];
 	double** cylinder3  = new double*[4];
 	double** cylinder4  = new double*[4];
 	double** cylinder5  = new double*[4];	
 
-	poro = PORO;
-	randomCircular(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro,nombre);
+	//poro = PORO;
+	//randomCircular(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro,nombre);
 	
 	
-	/*for (j=0;j<4;j++)
+	for (j=0;j<4;j++)
 	{
 		cylinder1[j] = new double[D];
 		cylinder2[j] = new double[D];
 		cylinder3[j] = new double[D];
 		cylinder4[j] = new double[D];
 		cylinder5[j] = new double[D];
-	}*/
+	}
 	//randomSquare(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro, nombre, cylinder1);
 	/*SquareCylinder(0,0,ratio*ymax,cylinder1);
 	SquareCylinder(xmax,0,ratio*ymax,cylinder2);
@@ -234,27 +241,29 @@ int main()
 	typeSquare(N,cylinder3,position,typeLat);
 	typeSquare(N,cylinder4,position,typeLat);
 	typeSquare(N,cylinder5,position,typeLat);*/
-	/*typeCircular(0,0,ratio*ymax,N,position,typeLat);
+	typeCircular(0,0,ratio*ymax,N,position,typeLat);
 	typeCircular(xmax,0,ratio*ymax,N,position,typeLat);
 	typeCircular(0,ymax,ratio*ymax,N,position,typeLat);
 	typeCircular(xmax,ymax,ratio*ymax,N,position,typeLat);
-	typeCircular(0.5*xmax,ymax/2,ratio*ymax,N,position,typeLat);*/
-	//poro = porosite(typeLat,nombre,N);
-	//printf("poro : %f\n",poro);
-	//printf("Diametre : %f\n",100*ratio);*/
+	typeCircular(0.5*xmax,ymax/2,ratio*ymax,N,position,typeLat);
+	poro = porosite(typeLat,nombre,N);
+	printf("poro : %f\n",poro);
+	printf("Diametre : %f\n",100*ratio);
 	
-	/*int *pos = new int[2];
+	int *pos = new int[2];
 	pos_solide(typeLat, pos,nx,ny);
 
-	tab_voisin(N,Q,typeLat,tab_Voisin,conn);*/
+	tab_voisin(N,Q,typeLat,tab_Voisin,conn);
 	/*for (j=0;j<N;j++)
 	{
 		printf("Tab_Voisin %d : %d\n",j,tab_Voisin[j]);
 	}*/
-	/*nettoyage(typeLat,conn,N,Q);
+	nettoyage(typeLat,conn,N,Q);
 	poro = porosite (typeLat,nombre,N);
-	printf("Porosité : %f\n",poro);*/
-	//****************************ECOULEMENTS RAREFIES**********************************//
+	printf("Porosité : %f\n",poro);
+	
+//****************************ECOULEMENTS RAREFIES**********************************//
+
 	double Kn = KNU;
 	double tau_s = temp2[1];
 	double tau_q = temp2[2];
@@ -262,75 +271,49 @@ int main()
 	double beta = temp2[0];
 	double sigma1 = temp2[0];
 	
-		//*************************slip velocity***************************//
-		sigma = 1;
-		//slip_velocity_Wang_2017(Kn,A,sigma);
-		slip_velocity_Guo_2008(A,sigma);
-		//slip_velocity_Guo_2011(Kn,A,sigma);
-		//slip_velocity_Hadjiconstantinou_2003(Kn,A,sigma);
-		//slip_velocity_Wu_2008(Kn,A,sigma);
-		//slip_velocity_Li_2011(Kn,A,sigma);
-		//printf("Coefficients de glissement : A1 = %f , A2 = %f\n",A[0],A[1]);
-		//************************wall function***************************//
-		//PHI_Guo_Shu_2013(Kn,PHI,N);
-		PHI_Guo_2008(Kn,ymax,dx,PHI,ny,rank); //Equivalent à Stops
-		//PHI_Zhang_2006(Kn,ymax,dx,PHI,ny,rank);
-		//PHI_Dongari_2011(Kn,ymax,dx,PHI,ny,rank);
-		//PHI_Arlemark_2010(Kn,ymax,dx,PHI,ny,rank);
-		
-		//*************************method*********************************//
-		//temp2 = MRT_Continuous(cs,dt,nu);
+//*************************SLIP VELOCITY***************************//
+
+	sigma = 1;
+	// 'Guo-2008' , 'Guo-2011' , 'Wang-2017' , 'Hadjiconstantinou-2003' , 'Li-2011' , 'Wu-2008' , 'de Izarra-2012'
+	std::string slip ("Guo-2008");
+	double* A = Slip_velocity(slip,sigma,Kn);
+	printf("Coefficients de glissement : A1 = %f , A2 = %f\n",A[0],A[1]);
 	
-		temp2 = MRT_Guo_2008_CBBSR(Kn,ymax,tau_s,tau_q,r,dx,A);
-		r = temp2[0];
-		printf("r : %f\n",r);
-		
-		/*temp2 = MRT_Guo_2008_CBBSR_function(Kn,ymax,tau_q,r,dx,ny,rank, PHI,A);
-		r = temp2[0];*/
-		
-		/*temp2 = MRT_Li_2011_CBBSR(Kn,ymax,tau_s,tau_q,r,dx,A);
-		r = temp2[0];*/
-		
-		/*temp2 = MRT_Li_2011_CBBSR_function(Kn,ymax,tau_s,r,dx,ny,rank,rank2,PHI,A);
-		r = temp2[0];
-		printf("r : %f\n",r);*/
-		
-		//temp2 = MRT_Verhaeghe_2009_DBB_function(Kn,ymax,tau_s,beta,dx,ny,rank,rank2,PHI);
-		//temp2 =  MRT_Verhaeghe_2009_DBB(Kn,ymax,tau_s,tau_q,beta,dx);
-		
-		
+//************************WALL FUNCTION***************************//
+
+	// 'Guo-2008' , 'Zhang-2006' , 'Dongari-2011' , 'Arlemark-2010' , 'Guo_Shu-2013'
+	bool boolean_wfunction = false;	
+	std::string wfunction ("Guo-2008");
+	double* PHI = Wall_function(wfunction,Kn,ymax,dx,ny,rank,rho_out,lat);
 	
-		/*temp2 =MRT_Guo_2011_DBB(Kn,ymax,tau_s,tau_q,beta,dx,A);
-		beta = temp2[0];
-		printf("beta : %f\n",beta);*/
+//*************************RAREFIED METHOD*********************************//
+
+	std::string rarefied_method;
+	// CBBSR DBB MR Continuous
+	std::string rarefied_BC ("Continuous");
+	// Guo-2008 Guo-2011 Yudong-2016 Verhaeghe-2009 Li-2011
+	std::string rarefied_article ("");
+	// Avec ou sans wall function
+	rarefied_method = rarefied_article +"_"+rarefied_BC;
+	if(!boolean_wfunction){temp2 = rarefied_model(rarefied_method,cs,dt,nu,Kn,ymax,r,beta,dx,A);}
+	else{temp2 = rarefied_model_function(rarefied_method,cs,dt,nu,Kn,ymax,r,sigma,beta,dx,ny,rank,rank2,PHI,A);}
+	r = temp2[0];
+	beta = temp2[0];	
+	tau_s = temp2[1];
+	tau_q = temp2[2];
+			
 		
-		/*MRT_Yudong_2016_DBB(Kn,ymax,tau_s,tau_q,beta,dx,nu, A);
-		beta = temp2[0];
-		printf("beta : %f\n",beta);*/
-		/*temp2 = MRT_Guo_2011_DBB_function(Kn,tau_q,tau_s,ymax,beta,dx,ny,rank,rank2,PHI,A);
-		beta = temp2[0];
-		printf("beta : %f\n",beta);*/
-	
-		/*temp2 = MRT_Guo_2008_MR_function(Kn,ymax,tau_q,sigma1,dx,ny,rank,PHI,A);
-		sigma1 = temp2[0];
-		printf("sigma : %f\n",sigma1);*/	
-		
-		/*temp2 =MRT_Yudong_2016_DBB_function(Kn,ymax,tau_s,beta,dx,ny,rank,rank2,PHI);
-		beta = temp2[0];
-		printf("beta : %f\n",beta);*/
-		
-		tau_s = temp2[1];
-		tau_q = temp2[2];
-		printf("tau_s : %f\n",tau_s);
-		printf("tau_q : %f\n",tau_q);
-		printf("nu = %f\n",nu);
-		printf("Kn = %f\n",Kn);
-	//Fi[0] = (rho_in-rho_out)*cs*cs/(xmax);
-	Umax = Fi[0]*sqrt(6)*ymax;
+//*******************************AFFICHAGE******************************//	
+
+	printf("nu = %f\n",nu);
+	printf("Kn = %f\n",Kn);
+	printf("r : %f, tau_s : %f, tau_q : %f\n",r,tau_s,tau_q);
+	Fi[0] = (rho_in-rho_out)*cs*cs/(xmax);
+	//Umax = Fi[0]*sqrt(6)*ymax;
 	//printf("Umax  = Fi * sqrt(6)*ymax %.8f\n", Umax);
 	//printf("Re %f\n", Umax * ymax/nu);
 	//printf("Ma %f\n",Umax/cs);	
-	//Umax = Fi[0]*ymax*ymax/(8*nu);//Avec body force
+	Umax = Fi[0]*ymax*ymax/(8*nu);//Avec body force
 	//mu = sqrt(2/(3*M_PI))*Kn*ymax/dx;
 	//Umax = ymax*ymax*(rho_in-rho_out)*cs*cs/(8*mu*xmax);//Vitesse max pour gradient de pression
 	printf("Umax : %.10f\n",Umax);
@@ -340,12 +323,12 @@ int main()
 	printf("Domaine : [ %.0f %.0f ] x [ %.0f %.0f ]\n",xmin,xmax,ymin,ymax);
 	printf("Erreur d'arrêt : %f\n", error);
 	printf("Nombre de lattices : %d\n",N);  
-	printf("s_nu (entre 0 et 2) : %f\n",1/tau_s);
-	printf("s_q (entre 0 et 2): %f\n",1/tau_q);
 
 	/* std:: cout << "  Number of processors available = " << omp_get_num_procs ( ) << "\n"<< std::endl;
 	  std ::cout << "  Number of threads =              " << omp_get_max_threads ( ) << "\n" <<std::endl;*/
-//************************INITIALISATION MRT*****************************************//
+	  
+//*************************************INITIALISATION MRT*****************************************//
+
 double**  M = MRT_matrice_passage(Q); //Matrice de passage des populations aux moments
 double** invM = new double*[Q]; //Matrice de l'inverse de M		
 for (int i=0;i<Q;i++)
@@ -357,125 +340,131 @@ MatrixInversion(M,Q,invM);
 double** F_bar = new double*[N];
 double** F = new double*[N];
 for (int i=0;i<N;i++)
-	{
-		F[i] = new double[Q];
-		F_bar[i] = new double[Q];
-	}	
-				//********SANS WALL FUNCTION*********//
-/*double** Si = MRT_S(Q,tau_s, tau_q); //Matrice de relaxation			
-double** C = new double*[Q]; //Matrice du produit matriciel M-1 * Si
-double** C1 = new double*[Q]; // Matrice I-0.5*S
-double** C2 = new double*[Q]; //Matrice M-1 * (I-0.5*S) = invM * C1
-double** C3 = new double*[Q]; //Matrice M-1 * (I-0.5*S)* M = C2 * M		
-double** C4	= new double*[Q]; //Matrice du produit matriciel M-1 * Si * M = C * M
-for (int i=0;i<Q;i++)
 {
-	C[i] = new double[Q];
-	C1[i] = new double[Q];
-	C2[i] = new double[Q];
-	C3[i] = new double[Q];
-	C4[i] = new double[Q];
-}
-matrix_product(invM,Si,C,Q);
-for (int i=0;i<Q;i++)
-{
-	for (int j=0;j<Q;j++)
+	F[i] = new double[Q];
+	F_bar[i] = new double[Q];
+}	
+
+						//********SANS WALL FUNCTION*********//
+
+	double** Si = MRT_S(Q,tau_s, tau_q); //Matrice de relaxation			
+	double** C = new double*[Q]; //Matrice du produit matriciel M-1 * Si
+	double** C1 = new double*[Q]; // Matrice I-0.5*S
+	double** C2 = new double*[Q]; //Matrice M-1 * (I-0.5*S) = invM * C1
+	double** C3 = new double*[Q]; //Matrice M-1 * (I-0.5*S)* M = C2 * M		
+	double** C4	= new double*[Q]; //Matrice du produit matriciel M-1 * Si * M = C * M
+	for (int i=0;i<Q;i++)
 	{
-		C1[i][j] = 0;
+		C[i] = new double[Q];
+		C1[i] = new double[Q];
+		C2[i] = new double[Q];
+		C3[i] = new double[Q];
+		C4[i] = new double[Q];
 	}
-	C1[i][i] = 1-0.5*Si[i][i];
-}
-matrix_product(invM,C1,C2,Q);
-matrix_product(C2,M,C3,Q);
-matrix_product(C,M,C4,Q);*/
-//AFFICHAGE MATRICES
-//affichage_matrix(Q,M);	
-//affichage_matrix(Q,invM);	
-//affichage_matrix(Q,Si);	
-//affichage_matrix(Q,C);	
-//affichage_matrix(Q,C3);
-//affichage_matrix(Q,C4);
-				
-				//*******AVEC WALL FUNCTION*********//
-//Différence sans/avec : tau_s dépend de la lattice avec wall function, chaque lattice 
-//a sa propre matrice de relaxation
-double*** Si_wall = new double**[ny];
-double*** C_wall = new double**[ny]; //Matrice du produit matriciel M-1 * Si
-double*** C1_wall = new double**[ny]; // Matrice I-0.5*S
-double*** C2_wall = new double**[ny]; //Matrice M-1 * (I-0.5*S) = invM * C1
-double*** C3_wall = new double**[ny]; //Matrice M-1 * (I-0.5*S)* M = C2 * M	
-for (int i=0;i<ny;i++)
-{
-	Si_wall[i] = MRT_S(Q,rank[i][1], tau_q); // avec tau_q constant
-	//Si_wall[i] = MRT_S(Q,rank[i][1], rank2[i][1]); //avec tau_q modifié
-	C_wall[i] = new double*[Q];
-	C1_wall[i] = new double*[Q];
-	C2_wall[i] = new double*[Q];
-	C3_wall[i] = new double*[Q];
-	for (int j=0;j<Q;j++)
+	matrix_product(invM,Si,C,Q);
+	for (int i=0;i<Q;i++)
 	{
-		C_wall[i][j] = new double[Q];
-		C1_wall[i][j] = new double[Q];
-		C2_wall[i][j] = new double[Q];
-		C3_wall[i][j] = new double[Q];
-	}
-	matrix_product(invM,Si_wall[i],C_wall[i],Q);
-	for (int j=0;j<Q;j++)
-	{
-		C1_wall[i][j] = new double[Q];
-		for (int k=0;k<Q;k++)
+		for (int j=0;j<Q;j++)
 		{
-			C1_wall[i][j][k] = 0;
+			C1[i][j] = 0;
 		}
-		C1_wall[i][j][j] = 1-0.5*Si_wall[i][j][j];
+		C1[i][i] = 1-0.5*Si[i][i];
 	}
-	matrix_product(invM,C1_wall[i],C2_wall[i],Q);
-	matrix_product(C2_wall[i],M,C3_wall[i],Q);
-}
-/*for (int i=0;i<ny;i++)
-{
-	printf("Lattice %d, ordonnée %f, PHI %f, tau_s %f, tau_q %f\n",i,rank[i][0],PHI[i],1/Si_wall[i][7][7],1/Si_wall[i][4][4]);
-}*/
+	matrix_product(invM,C1,C2,Q);
+	matrix_product(C2,M,C3,Q);
+	matrix_product(C,M,C4,Q);
+	//AFFICHAGE MATRICES
+	//affichage_matrix(Q,M);	
+	//affichage_matrix(Q,invM);	
+	//affichage_matrix(Q,Si);	
+	//affichage_matrix(Q,C);	
+	//affichage_matrix(Q,C3);
+	//affichage_matrix(Q,C4);
+
+							//*******AVEC WALL FUNCTION*********//
+	//Différence sans/avec : tau_s dépend de la lattice avec wall function, chaque lattice 
+	//a sa propre matrice de relaxation
+	/*double*** Si_wall = new double**[ny];
+	double*** C_wall = new double**[ny]; //Matrice du produit matriciel M-1 * Si
+	double*** C1_wall = new double**[ny]; // Matrice I-0.5*S
+	double*** C2_wall = new double**[ny]; //Matrice M-1 * (I-0.5*S) = invM * C1
+	double*** C3_wall = new double**[ny]; //Matrice M-1 * (I-0.5*S)* M = C2 * M	
+	for (int i=0;i<ny;i++)
+	{
+		Si_wall[i] = MRT_S(Q,rank[i][1], tau_q); // avec tau_q constant
+		//Si_wall[i] = MRT_S(Q,rank[i][1], rank2[i][1]); //avec tau_q modifié
+		C_wall[i] = new double*[Q];
+		C1_wall[i] = new double*[Q];
+		C2_wall[i] = new double*[Q];
+		C3_wall[i] = new double*[Q];
+		for (int j=0;j<Q;j++)
+		{
+			C_wall[i][j] = new double[Q];
+			C1_wall[i][j] = new double[Q];
+			C2_wall[i][j] = new double[Q];
+			C3_wall[i][j] = new double[Q];
+		}
+		matrix_product(invM,Si_wall[i],C_wall[i],Q);
+		for (int j=0;j<Q;j++)
+		{
+			C1_wall[i][j] = new double[Q];
+			for (int k=0;k<Q;k++)
+			{
+				C1_wall[i][j][k] = 0;
+			}
+			C1_wall[i][j][j] = 1-0.5*Si_wall[i][j][j];
+		}
+		matrix_product(invM,C1_wall[i],C2_wall[i],Q);
+		matrix_product(C2_wall[i],M,C3_wall[i],Q);
+	}*/
+
+						
 //*************************INITIALISATION DU DOMAINE******************************************//
-for (j=0;j<N;j++)
-{	
-	lat.rho_[j]=rho0;
-	//Initialisation des conditions liées aux positions des lattices
-	//Conditions inlet
-	if(j%nx==0)
-	{
-		lat.rho_[j] = rho_in;
-		//lat.u_[j][0] = v_in[j/nx][0];
-		//lat.u_[j][1] = v_in[j/nx][1];	
-	}
-	else if((j%nx)==nx-1)
-	{
-		lat.rho_[j] = rho_out;
-		//lat.u_[j][0] = v_out[j/nx][0];
-		//lat.u_[j][1] = v_out[j/nx][1];
-	}
-	velocity(j,D,Q,xi,lat,sigma);
-	for (k=0;k<Q;k++)
-	{
-		S[j][k] = 0;
-		lat.f0_[j][k] = omega_i[k]*lat.rho_[j];
-		lat.f_[j][k]  = lat.f0_[j][k]; //Initialement, on aura f = fi,eq (avec vitesse nulle)
-		f_star[j][k]  = lat.f_[j][k]-1/tau*(lat.f_[j][k]-lat.f0_[j][k]); //SRT
-	}
-}		
+initialisation_domain (N,nx,ny,lat,rho_in,rho_out,v_in,v_out,Uw, D,Q,xi,sigma, omega_i, f_star, tau, position);
 
 //******************************BOUCLE TEMPORELLE******************************************//
 while((erreur>error || erreur<-error))	
 {		
 	for (j=0 ; j<N ; j++) //Pour chaque lattice
     {
+		
+		/*mu = lat.rho_[j]* sqrt(2/(3*M_PI))*Kn*rho_out/lat.rho_[j]*ymax/dx;
+		tau_s = 0.5 + 3*mu/lat.rho_[j];
+		tau_q = (8-1/tau_s)/(8*(2-1/tau_s));
+		beta = (3*mu-Kn*ny)/(3*mu+Kn*ny);
+		//printf("mu, tau_s, tau_q, Kn, beta : %f %f %f %f %f \n",mu ,tau_s, tau_q, Kn, beta);		
+		//Kne = Kn*rho_out/lat.rho_[j];
+		MRT_S(Q,tau_s, tau_q,Si);
+		matrix_product(invM,Si,C,Q);
+		matrix_product(C,M,C4,Q);*/
+
+		/*Kne = Kn*rho_out/lat.rho_[j];
+		lambdae = Kne*ymax/dx;
+		test[0] =  rank[j/nx][0]/lambdae; //alpha
+		test[1] = (ymax-rank[j/nx][0])/lambdae;//alpha1
+		test[2] = 1+(test[0]-1)*exp(-test[0])-test[0]*test[0]*Ei_big(1,test[0]);//phi
+		test[3] = 1+(test[1]-1)*exp(-test[1])-test[1]*test[1]*Ei_big(1,test[1]);//phi1
+		test[4] = 0.5*(test[2] + test[3]); //PHI
+		Knee = Kne*test[4];
+		tau = 0.5 + sqrt(6/M_PI)*ymax/dx*Knee;
+		r = 1/(1+sqrt(M_PI/6)*(dx/ymax*dx/ymax/(4*Knee)+A[0]+(2*A[1]-8/M_PI)*Knee));*/
+		//printf("Lattice %d, tau : %f, r : %f\n",j,tau,r);		
 		for (k=0;k<Q;k++)
 		{
-			fi_equilibre (j,k,lat.rho_[j],cs,lat,lat.u_[j],xi,D,Qi,buffer,omega_i,sigma);
+			fi_equilibre (j,k,lat.rho_[j],cs,lat,lat.u_[j],xi,D,Qi,buffer,omega_i,sigma);	
 		}
 		//regularized_BC_v_inlet(j,k,lat,cs,v_in,nx,xi,D,Qi,buffer,omega_i,cas[j],Pi_neq,Q,f_neq, bb,sigma);
 		//regularized_BC_p_inlet(j,k,lat,cs,rho_in,xi,D,Qi,buffer,omega_i,cas[j],Pi_neq,Q,f_neq,bb,sigma);
 		//regularized_BC_p_outlet(j,k,lat,cs,rho_out,xi,D,Qi,buffer,omega_i,cas[j],Pi_neq,Q,f_neq,bb,sigma);
+		/*for (k=0;k<Q;k++)
+		{
+			fi_equilibre (j,k,lat.rho_[j],cs,lat,lat.u_[j],xi,D,Qi,buffer,omega_i,sigma);	
+		}*/
+		/*for (k=0;k<Q;k++)
+		{
+			f_star[j][k] = lat.f_[j][k]-1/tau*(lat.f_[j][k]-lat.f0_[j][k]); //Collision en SRT
+		}*/
+		
 		MRT_equilibre_v2(j,lat,M,Q,buffer);
 		for (k=0;k<Q;k++)
 		{
@@ -484,31 +473,36 @@ while((erreur>error || erreur<-error))
 		
 		//MRT_forcing(j,Q,cs,omega_i,xi,Fi,F_bar,lat,temp);
 		//MRT_collision(j,f_star,C,lat,Q,temp);
-		//MRT_collision_v2(j,f_star,C4,lat,Q,temp);
+		MRT_collision_v2(j,f_star,C4,lat,Q,temp);
 		//MRT_forcing_collision(j,f_star,C,lat,dt,F,C3,F_bar,Q,temp);
 		
-		MRT_forcing(j,k,cs,omega_i,xi,Fi,F_bar,lat,temp);
-		MRT_forcing_collision(j,f_star,C_wall[(int)j/nx],lat,dt,F,C3_wall[(int)j/nx],F_bar,Q,temp);	
+		//MRT_forcing(j,k,cs,omega_i,xi,Fi,F_bar,lat,temp);
+		//MRT_forcing_collision(j,f_star,C_wall[(int)j/nx],lat,dt,F,C3_wall[(int)j/nx],F_bar,Q,temp);	
 		//MRT_collision(j,f_star,C_wall[(int)j/nx],lat,Q,temp);
 		
-		//DBB_N_BC(j,cas[j],lat,beta,f_star);
+
+		//periodic_WE_BC(j,nx,ny,cas[j],lat,f_star); 	
+		//DBB_N_BC(j,cas[j],lat,beta,f_star);		
+		//DBB_N_BC_Couette(j,cas[j],lat,beta,f_star,cs,Uw,buffer,omega_i,xi,D,Q,Qi,sigma);
 		//DBB_S_BC(j,cas[j],lat,beta,f_star);
-		periodic_WE_BC(j,nx,ny,cas[j],lat,f_star); 	
-		CBBSR_N_BC(j,cas[j],lat,r,f_star);
-		CBBSR_S_BC(j,cas[j],lat,r,f_star);  
-		//bounceback_solid_BC(nx,j,lat,f_star,conn,typeLat,bb,nombre,pos,cas[j]);
+		//CBBSR_N_BC_Couette(j,cas[j],lat,r,f_star,uw,xi,cs, omega_i);
+		//CBBSR_N_BC(j,cas[j],lat,r,f_star);
+		//CBBSR_S_BC(j,cas[j],lat,r,f_star);  
+		bounceback_solid_BC(nx,j,lat,f_star,conn,typeLat,bb,nombre,pos,cas[j]);
 		//pression_in_BC( j,cas[j],lat,xi_r,rho_in);
         //pression_out_BC( j,cas[j],lat,xi_r,rho_out);		
-		//periodic_NS_BC(j,nx,ny,cas[j],lat,f_star); 		
+		periodic_NS_BC(j,nx,ny,cas[j],lat,f_star); 
+		periodic_pressure_WE_BC (j, nx, ny, cas[j], lat, f_star, dRHO, sigma,cs);		
 	    //bounceback_N_BC(j,cas[j],lat,f_star);
-        //bounceback_S_BC(j,cas[j],lat,f_star);
+       // bounceback_S_BC(j,cas[j],lat,f_star);
+
 			
 		propagation(j,lat,f_star, typeLat, conn, bb,Q);
 		if(!typeLat[j])
 		{
 			density(j,Q,lat,sigma); 
 			velocity(j,D,Q,xi,lat,sigma);
-			lat.u_[j][0]+=0.5*dt*Fi[0]/lat.rho_[j];
+			//lat.u_[j][0]+=0.5*dt*Fi[0]/(lat.rho_[j]);
 		}
 		else
 		{
@@ -516,74 +510,15 @@ while((erreur>error || erreur<-error))
 			lat.u_[j][0] = 0;
 			lat.u_[j][1] = 0;
 		}
-		
 	}
-
-	
-        //ETAPE DE PROPAGATION
-		//#pragma omp parallel for
-	/*	 for (j=0 ; j<N ; j++) //Pour chaque lattice
-        {
-			
-			propagation(j,lat,f_star, typeLat, conn, bb,Q);
-        	//pression_in_BC( j,cas[j],lat,xi_r,rho_in);
-        	//pression_out_BC( j,cas[j],lat,xi_r,rho_out);
-			periodic_WE_BC(j,nx,ny,cas[j],lat,f_star);        	
-			//DBB_N_BC(j,cas[j],lat,beta,f_star);
-        	//DBB_S_BC(j,cas[j],lat,beta,f_star);
-        	//bounceback_N_BC(j,cas[j],lat,f_star);
-        	//bounceback_S_BC(j,cas[j],lat,f_star);
-			CBBSR_N_BC(j,cas[j],lat,r,f_star);
-			CBBSR_S_BC(j,cas[j],lat,r,f_star);	
-			//MR_N_BC(j,cas[j],lat,sigma1,f_star);
-			//MR_S_BC(j,cas[j],lat,sigma1,f_star);
-        	
-		}
-		for (j=0 ; j<N ; j++)
-        {
-			density(j,Q,lat,sigma); 
-			velocity(j,D,Q,xi,lat,sigma);
-			lat.u_[j][0]+=0.5*dt*Fi[0]/lat.rho_[j];
-			
-			for (k=0;k<Q;k++)
-			{
-				fi_equilibre (j,k,lat.rho_[j],cs,lat,lat.u_[j],xi,D,Qi,buffer,omega_i,sigma);
-			}
-			//MRT_equilibre_v2(j,lat,M,Q,temp);
-			MRT_moment(j,k,lat,M,Q); //Calcul des moments	
-			MRT_equilibre(j,lat);
-			
-			MRT_forcing(j,Q,cs,omega_i,xi,Fi,F_bar,lat,temp);
-			//MRT_collision(j,f_star,C,lat,Q,temp);
-			//MRT_collision_v2(j,f_star,C4,lat,Q,dt,temp);
-			MRT_forcing_collision(j,f_star,C,lat,dt,F,C3,F_bar,Q,temp);		
-			
-			//MRT_forcing(j,k,cs,omega_i,xi,Fi,F_bar,lat,temp);
-			//MRT_collision(j,f_star,C_wall[(int)j/nx],lat,Q,dt,temp);
-			//MRT_forcing_collision(j,f_star,C_wall[(int)j/nx],lat,dt,F,C3_wall[(int)j/nx],F_bar,Q,temp);
-
-        }*/
-	
-	
                // Ecriture des résultats	
         if (it%outputFrequency==0 && it!=0) 
 		{
 			char name = FileName(Kn);
 			//vorticite(nx,ny,lat,dx,typeLat,conn);
 			ttsity = tortuosite(nx,ny,lat,dx,typeLat,conn);
-			writeLattice(domain, "LBM",Kn,mu,name,it,lat);
-			//CALCUL DE LA CONVERGENCE TEMPORELLE
+			writeLattice(domain,"LBM",Kn,mu,name,it,lat);
 			valeur2 = 0;
-			m=0;
-			for (j=0;j<N;j++)
-			{
-				if (sqrt(lat.u_[j][0]*lat.u_[j][0]+lat.u_[j][1]*lat.u_[j][1])>=0.1*sqrt(3))
-				{
-					m++;
-				}
-			}
-			
-			//printf("Pourcentage de la zone fluide : %.2f et  dRHO = %.2f et mu = %.2f \n",m/(1-poro)*0.1,dRHO,mu);	
 			for (int j=0;j<N;j++)
 			{
 				valeur2+=sqrt(lat.u_[j][0]*lat.u_[j][0]+lat.u_[j][1]*lat.u_[j][1]);
@@ -594,9 +529,8 @@ while((erreur>error || erreur<-error))
 		}
 		it++;
 }
-
 	char name = FileName(Kn);
-	writeLattice(domain, "LBM",Kn,mu,name,it,lat);
+	writeLattice(domain,"LBM",Kn,mu,name,it,lat);
 	time_t timer2 = time(NULL);
 	printf("Temps d'exécution : %d s\n",(int)(timer2-timer1));
 	printf("Temps d'exécution pour 1000 itérations: %.2f s\n",(double)((int)(timer2-timer1))/it*1000);
