@@ -21,7 +21,8 @@
 #define FPMIN 1.0e-30
 #define EPS 1.0e-8 
 
-double pscal(double* a,double* b, int D, double sigma) //fonction pour le produit scalaire en D dimensions
+//Fonction pour le produit scalaire en D dimensions
+double pscal(double* a,double* b, int D, double sigma) 
 {
 	sigma=0;
 	for ( int i=0;i<D;i++)
@@ -31,7 +32,8 @@ double pscal(double* a,double* b, int D, double sigma) //fonction pour le produi
 	return sigma;
 }
 
-void density ( int j, int Q, Lattice lat, double sigma) //fonction pour la somme des fi pour calculer la masse volumique
+//Fonction pour la somme des fi pour calculer la masse volumique
+void density ( int j, int Q, Lattice lat, double sigma) 
 {
 	sigma = 0;
 	for ( int k=0;k<Q;k++)
@@ -40,6 +42,8 @@ void density ( int j, int Q, Lattice lat, double sigma) //fonction pour la somme
 	}
 	lat.rho_[j] = sigma;
 }
+
+//Fonction pour calculer la vitesse macroscopique en D dimensions
 void velocity( int j, int D,  int Q, double** xi, Lattice lat, double sigma)
 {
 	for ( int k=0;k<D;k++)
@@ -52,6 +56,8 @@ void velocity( int j, int D,  int Q, double** xi, Lattice lat, double sigma)
 		lat.u_[j][k] = sigma/lat.rho_[j];
 	}
 }
+
+//Fonction donnant un numéro à la lattice, déterminant son cas (noté de 0 à 8 pour un domaine simple)
 void domainCondition(int nx, int ny,  int* cas)
 {
 	for ( int j=0;j<nx*ny;j++)
@@ -91,22 +97,8 @@ void domainCondition(int nx, int ny,  int* cas)
 	}
 }
 
-void solidCondition(int Q, int** conn,int nx, int ny, int* cas, bool* typeLat)
-{
-	for (int j=0;j<nx*ny;j++)
-	{
-		for (int k=1;k<Q;k++)
-		{
-			if (conn[j][k]!=-1 && typeLat[j] && !typeLat[conn[j][k]])
-			{
-				cas[j]=9;
-				cas[conn[j][k]] = 10;
-			}
-		}
-	}
-}
 
-//Fonction donnant la localisation de tous les noeuds de lattices (pour des noeuds off-grid)
+//Fonction donnant la localisation de tous les noeuds de lattices (pour des noeuds mid grid, le noeud est au milieu de la lattice)
 void localisation(int nx, int ny, double dx, double** position)
 {
 	for ( int i=0;i<nx*ny;i++)
@@ -116,7 +108,8 @@ void localisation(int nx, int ny, double dx, double** position)
 	}
 }
 
-//Création d'un cylindre carré avec sa position du milieu et son diamètre
+//Localisation d'un cylindre carré en fonction de ses coordonnées de son milieu et de la longueur du côté
+//Fonction donnant les 4 coins du carré
 void SquareCylinder(double abscisse, double ordonnee, double diametre, double** coin)
 {
 	coin[0][0] = abscisse - 0.5*diametre;
@@ -129,11 +122,12 @@ void SquareCylinder(double abscisse, double ordonnee, double diametre, double** 
 	coin[3][1] = ordonnee + 0.5*diametre;
 }
 
-//Création d'un cylindre circulaire avec sa position du milieu et son diamètre
+//Création d'un cylindre circulaire en fonction de ses coordonnées de son centre et de son diamètre
 void typeCircular(double abscisse, double ordonnee, double diametre, int N, double** position, bool* typeLat)
 {
 	for (int i=0;i<N;i++)
 	{
+		// si (xm-xo)² + (ym-yo)² <= D²/4, alors la lattice fait partie du cylindre, il est solide
 		if(((position[i][0]-abscisse)*(position[i][0]-abscisse)+(position[i][1]-ordonnee)*(position[i][1]-ordonnee))<=diametre*diametre*0.25)
 		{
 			typeLat[i] = true;
@@ -141,12 +135,37 @@ void typeCircular(double abscisse, double ordonnee, double diametre, int N, doub
 	}
 }
 
-void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre)
+//Création d'une ellipse en fonction de son centre, les longueurs des demi-grands axes et de son orientation en degrés
+void typeEllipse(double abscisse, double ordonnee, double a, double b, double orientation, int N, double** position, bool*typeLat)
 {
-	double* tableau[50];
+	double* pos_f = new double[2]; //position du premier foyer
+	double* pos_f_p = new double[2]; //position du second foyer
+	double c  = sqrt(std::max(a,b)*std::max(a,b)-std::min(a,b)*std::min(a,b)); //c = sqrt(b²-a²)
+	double d_f,d_fp ; //distance du point M aux foyer principal et secondaire
+	pos_f[0] = abscisse + cos(orientation*M_PI/180)*c;
+	pos_f[1] = ordonnee + sin(orientation*M_PI/180)*c;
+	pos_f_p[0] = abscisse - cos(orientation*M_PI/180)*c;
+	pos_f_p[1] = ordonnee - sin(orientation*M_PI/180)*c; 
+	for (int i = 0; i<N;i++)
+	{
+		d_f = sqrt((position[i][0]-pos_f[0])*(position[i][0]-pos_f[0])+(position[i][1]-pos_f[1])*(position[i][1]-pos_f[1]));
+		d_fp = sqrt((position[i][0]-pos_f_p[0])*(position[i][0]-pos_f_p[0])+(position[i][1]-pos_f_p[1])*(position[i][1]-pos_f_p[1]));
+		//Condition pour qu'une lattice soit dans une ellipse : (d(MF) + d(MF'))<2a
+		if ((d_f+d_fp)<=2*std::max(a,b)) 
+		{
+			typeLat[i] = true;
+		}
+	}
+}
+
+//Fonction générant au hasard des ellipses jusqu'à la porosité considérée, SANS encastrement
+void randomEllipse(int nx, int ny, double xmin, double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre)
+{
+	bool* typeLat_buf = new bool[N];
+	double* tableau[50]; // Tableau qui enregistre les ellipses (abscisse, ordonnee, demi axes a et b, orientation), maximum de 50 cylindres ici
 	for (int i=0;i<50;i++)
 	{
-		tableau[i] = new double[3];
+		tableau[i] = new double[5];
 		for (int j=0;j<5;j++)
 		{
 			tableau[i][j] = 0;
@@ -156,18 +175,100 @@ void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double
 	double poro2;
 	int buf = 0;
 	srand(time(NULL));
-	int rnd  = rand()%(nx-1);
-	int rnd2 = rand()%(ny-1);
-	//int ratio = 30;
-	int ratio = rand()%30 + 10;
-	double abscisse =  position[rnd][0];  // abscisse in the range 1 to nx
-	double ordonnee =  position[rnd2*100][1];  // ordonnee in the range 1 to ny
+	int rnd  = rand()%(nx-20)+10;
+	int rnd2 = rand()%(ny-20)+10;
+	int a = rand()%10 + 5; // demi grand axe variant entre 5 et 15 % de la largeur du domaine
+	int b = rand()%8 + 2; //demi petit axe variant entre 2 et 10 % de la largeur du domaine
+	int orientation = rand()%180; //Orientation entre 0 et 180°
+	double abscisse =  position[rnd][0];  // abscisse entre 10 et 90 % de la longueur
+	double ordonnee =  position[rnd2*100][1];  // ordonnee entre 10 et 90 % de la largeur
 	srand(time(NULL));
-    double diametre = (ratio)*0.01*ny;	
-	printf("Abscisse : %f Ordonnée : %f Diametre : %f\n",abscisse, ordonnee, diametre);
+	//On veut que la porosité générée se situe entre 99 et 101 % de la porosité idéale voulue
 	while (poro2<=0.99*poro || poro2>=1.01*poro)
 	{
-		bool* typeLat_buf = new bool[N];
+
+		typeEllipse(abscisse,ordonnee,a,b,orientation, N,position,typeLat_buf);
+		for(int j=0;j<N;j++)
+		{
+			if(typeLat_buf[j]==true && typeLat[j]==true)
+			{
+				buf++;
+			}
+			// Ici, on ne veut pas que le solide soit crée trop proche de l'entrée/sortie
+			if(typeLat_buf[j]==true && (position[j][0]<0.03*nx || position[j][0]>0.97*nx)) 
+			{
+				buf++;
+			}
+		}
+		//Si les conditions en haut sont toutes fausses (pas d'encastrement, et solide bien situé), alors on crée l'ellipse dans le domaine
+		if(buf==0)
+		{
+			tableau[num][0] = abscisse;
+			tableau[num][1] = ordonnee;
+			tableau[num][2] = a;
+			tableau[num][3] = b;
+			tableau[num][4] = orientation;
+			num++;
+			for (int j=0;j<N;j++)
+			{
+				if(typeLat_buf[j]==true)
+				{
+					typeLat[j] = true;
+				}
+			}
+		}
+		rnd  = rand()%(nx-20)+10;
+		rnd2 = rand()%(nx-20)+10;
+		a = rand()%10 + 5; // demi grand axe variant entre 5 et 15 % de la largeur du domaine
+	 	b = rand()%8 + 2; //demi petit axe variant entre 2 et 12 % de la largeur du domaine
+	 	orientation = rand()%180; //Orientation entre 0 et 180°
+		abscisse =  position[rnd][0];
+		ordonnee =  position[rnd2*100][1];	
+		buf = 0;
+		poro2 = porosite (typeLat,nombre,N); //Calcul de la porosité
+		printf("Porosité : %f\n",poro2);
+		for (int j=0;j<N;j++)
+		{
+			typeLat_buf[j] = false;
+		}
+	
+	}
+	for (int i=0;i<50;i++)
+	{
+		if(tableau[i][0]!=0)
+		{
+			printf("Ellipse %d, abscisse %f ordonnee %f a : %f b : %f orientation : %f °\n",i,tableau[i][0],tableau[i][1],tableau[i][2],tableau[i][3],tableau[i][4]);
+		}
+	}
+}
+
+//Fonction générant des cylindres circulaires jusqu'à la porosité voulue, SANS encastrement
+void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre)
+{
+	bool* typeLat_buf = new bool[N];
+	double* tableau[50]; // Tableau qui enregistre les cylindres circulaire (abscisse, ordonnee, diametre), maximum de 50 cylindres ici
+	for (int i=0;i<50;i++)
+	{
+		tableau[i] = new double[3];
+		for (int j=0;j<3;j++)
+		{
+			tableau[i][j] = 0;
+		}
+	}
+	int num = 0;
+	double poro2;
+	int buf = 0;
+	srand(time(NULL));
+	int rnd  = rand()%(nx-20) + 10 ;
+	int rnd2 = rand()%(ny-20) + 10 ;
+	int ratio = rand()%30 + 10; //diametre entre 10 et 40 % de la largeur
+	double abscisse =  position[rnd][0];  // abscisse entre 10 et 90 % de la longueur
+	double ordonnee =  position[rnd2*100][1];  // ordonnée entre 10 et 90 % de la largeur
+	srand(time(NULL));
+    double diametre = (ratio)*0.01*ny;	
+
+	while (poro2<=0.99*poro || poro2>=1.01*poro)
+	{
 		typeCircular(abscisse,ordonnee,diametre,N,position,typeLat_buf);
 		for(int j=0;j<N;j++)
 		{
@@ -193,19 +294,21 @@ void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double
 					typeLat[j] = true;
 				}
 			}
-			//printf("Abscisse : %f Ordonnée : %f Diametre : %f\n",abscisse, ordonnee, diametre);
 		}
-		rnd  = rand()%(nx-10)+10;
-		rnd2 = rand()%(nx-10)+10;
+		rnd  = rand()%(nx-20)+10;
+		rnd2 = rand()%(nx-20)+10;
 		//ratio = 30;
 		ratio = rand()%30 + 10;
 		abscisse =  position[rnd][0];
 		ordonnee =  position[rnd2*100][1];
 		diametre = (ratio)*0.01*ny;	
-		//printf("Abscisse : %f Ordonnée : %f Diametre : %f\n",abscisse, ordonnee, diametre);
 		buf = 0;
 		poro2 = porosite (typeLat,nombre,N);
 		printf("Porosité : %f\n",poro2);
+		for (int j=0;j<N;j++)
+		{
+			typeLat_buf[j] = false;
+		}
 	
 	}
 	for (int i=0;i<50;i++)
@@ -223,9 +326,9 @@ void randomSquare(int nx, int ny, double xmin,double xmax, double ymin, double y
 	double poro2 = 1;
 	int buf = 0;
 	srand(time(NULL));
-	int rnd  = rand()%(nx-10) +10;
-	int rnd2 = rand()%(ny-10) +10;
-	int ratio = rand()%20 + 10;
+	int rnd  = rand()%(nx-20) +10;
+	int rnd2 = rand()%(ny-20) +10;
+	int ratio = rand()%20 + 10; // Côté du carré entre 10 et 30 % de la largeur
 	double abscisse =  position[rnd][0];  // abscisse in the range 1 to nx
 	double ordonnee =  position[rnd2*100][1];  // ordonnee in the range 1 to ny
 	srand(time(NULL));
@@ -257,8 +360,8 @@ void randomSquare(int nx, int ny, double xmin,double xmax, double ymin, double y
 				}
 			}
 		}
-		rnd  = rand()%(nx-10)+10;
-		rnd2 = rand()%(nx-10)+10;
+		rnd  = rand()%(nx-20)+10;
+		rnd2 = rand()%(nx-20)+10;
 		ratio = rand()%20 + 10;
 		abscisse =  position[rnd][0];
 		ordonnee =  position[rnd2*100][1];
@@ -283,7 +386,7 @@ void nettoyage(bool* typeLat, int** conn, int N, int Q)
 		{
 			for (int k=0;k<Q;k++)
 			{
-				if(typeLat[conn[j][k]]!=-1)
+				if(conn[j][k]!=-1)
 				{
 					if (typeLat[conn[j][k]]==true)
 					{

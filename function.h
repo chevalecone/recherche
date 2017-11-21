@@ -29,7 +29,6 @@ void connectivite(int nx,int ny,  int Q, int** conn);
 void bounceback_neighbour( int* bb,  int Q);
 //Cas pour les frontières du domaine et/ou solides
 void domainCondition(int nx, int ny,  int* cas);
-void solidCondition(int Q, int** conn,int nx, int ny, int*cas, bool* typeLat);
 //Condition des lattices vis à vis des cylindres solides
 void tab_voisin(int N, int Q, bool* typeLat, int* tab_Voisin, int** conn);
 
@@ -41,11 +40,13 @@ void pos_solide (bool* typeLat,  int* pos, int nx, int ny);
 //Matrice des 4 coins de la section carrée du cylindre
 void SquareCylinder(double abscisse, double ordonnee, double diametre, double** coin);
 void typeCircular(double abscisse, double ordonnee, double diametre, int N, double** position, bool* typeLat);
+void typeEllipse(double abscisse, double ordonnee, double a, double b, double orientation, int N, double** position, bool*typeLat);
 //Remplit typeLat pour un cylindre carré
 void typeSquare( int N, double** coin, double** position, bool* typeLat);
 double porosite (bool* typeLat, int nombre, int N);
 void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre);
 void randomSquare(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre, double** cylinder);
+void randomEllipse(int nx, int ny, double xmin, double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre);
 void nettoyage(bool* typeLat, int** conn, int N, int Q);
 //**************************WALL FUNCTION******************************//
 //Donne la valeur de Ei(x)

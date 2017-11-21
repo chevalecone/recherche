@@ -29,10 +29,10 @@
 
 //Variables de la simulation
 # define RHO 1
-# define MU 0.135
+# define MU 0.3
 # define DX 1
 
-# define dRHO 1.5
+# define dRHO 1.05
 # define dFi 0.000000
 # define U_IN_x 0.0
 # define U_IN_y 0.
@@ -49,9 +49,9 @@
 # define XMIN 0
 # define XMAX 100
 # define YMIN 0
-# define YMAX 100
-# define OUTPUT 1000
-# define PRECISION 0.0000001
+# define YMAX 50
+# define OUTPUT 100
+# define PRECISION 0.0000005
 
 
 int main()
@@ -211,15 +211,16 @@ int main()
 
 //******************************CREATION DES SOLIDES******************************************//
 	//CYLINDRE A SECTION CARREE
-	double ratio = 0.6,nombre =0;
+	double ratio = 0.71,nombre =0;
 	double** cylinder1  = new double*[4];
 	double** cylinder2  = new double*[4];
 	double** cylinder3  = new double*[4];
 	double** cylinder4  = new double*[4];
 	double** cylinder5  = new double*[4];	
 
-	//poro = PORO;
+	poro = PORO;
 	//randomCircular(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro,nombre);
+	randomEllipse(nx, ny, xmin, xmax, ymin, ymax, N, position, typeLat, poro, nombre);
 	
 	
 	for (j=0;j<4;j++)
@@ -241,14 +242,15 @@ int main()
 	typeSquare(N,cylinder3,position,typeLat);
 	typeSquare(N,cylinder4,position,typeLat);
 	typeSquare(N,cylinder5,position,typeLat);*/
-	typeCircular(0,0,ratio*ymax,N,position,typeLat);
-	typeCircular(xmax,0,ratio*ymax,N,position,typeLat);
-	typeCircular(0,ymax,ratio*ymax,N,position,typeLat);
-	typeCircular(xmax,ymax,ratio*ymax,N,position,typeLat);
-	typeCircular(0.5*xmax,ymax/2,ratio*ymax,N,position,typeLat);
-	poro = porosite(typeLat,nombre,N);
+	//typeEllipse(0.5*xmax, 0.5*ymax, 0.1*ymax, 0.2*ymax, 45, N, position, typeLat);
+	//typeCircular(0,0,ratio*ymax,N,position,typeLat);
+	//typeCircular(xmax,0,ratio*ymax,N,position,typeLat);
+	//typeCircular(0,ymax,ratio*ymax,N,position,typeLat);
+	//typeCircular(xmax,ymax,ratio*ymax,N,position,typeLat);
+	//typeCircular(0.5*xmax,0.5*ymax,ratio*ymax,N,position,typeLat);
+	/*poro = porosite(typeLat,nombre,N);
 	printf("poro : %f\n",poro);
-	printf("Diametre : %f\n",100*ratio);
+	printf("Diametre : %f\n",100*ratio);*/
 	
 	int *pos = new int[2];
 	pos_solide(typeLat, pos,nx,ny);

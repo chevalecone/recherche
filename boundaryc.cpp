@@ -41,26 +41,26 @@ void periodic_NS_BC( int j,int nx, int ny,  int cas, Lattice lat, double** f_sta
 		lat.f_[j][2] = f_star[nx*ny-nx+j][2];
 		lat.f_[j][5] = f_star[nx*ny-nx+j-1][5];
 		break;
-		/*case 5:
+		case 5:
 		lat.f_[j][2] = f_star[nx*ny-nx][2]; //Conditions périodique en sortie
-		//lat.f_[j][6] = f_star[nx*ny-nx+1][6];
+		lat.f_[j][6] = f_star[nx*ny-nx+1][6];
 		lat.f_[j][5] = f_star[nx*ny-1][5];
 		break;
 		case 6:
 		lat.f_[j][2] = f_star[nx*ny-1][2]; //Condition périodique en sortie
-		//lat.f_[j][5] = f_star[nx*ny-2][5];
+		lat.f_[j][5] = f_star[nx*ny-2][5];
 		lat.f_[j][8] = f_star[nx*ny-nx][8];
 		break;
 		case 7:
 		lat.f_[j][4] = f_star[0][4];//Condition périodique en entrée
 		lat.f_[j][7] = f_star[1][7];
-		//lat.f_[j][8] = f_star[nx-1][8];
+		lat.f_[j][8] = f_star[nx-1][8];
 		break;
 		case 8:
 		lat.f_[j][4] = f_star[nx-1][4]; //Condition périodique en entrée
 		lat.f_[j][8] = f_star[nx-2][8];
-		//lat.f_[j][7] = f_star[0][7];
-		break;*/
+		lat.f_[j][7] = f_star[0][7];
+		break;
 	}
 }
 void periodic_WE_BC( int j,int nx, int ny,  int cas, Lattice lat, double** f_star)
