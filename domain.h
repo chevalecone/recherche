@@ -17,7 +17,7 @@ class  Domain
     Domain();          // Public constructor
     ~Domain(); 	       // Public destructor
 
-    // Accessors
+    // Accessors : fonctions permettant l'accès aux variables de la classe Domain (nombre de lattices, frontières du domaines etc...)
     int getNx()   {return nx_;};
     int getNy()   {return ny_;};
     int getNTot() {return nTot_;};

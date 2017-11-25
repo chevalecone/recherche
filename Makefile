@@ -6,7 +6,7 @@ CC=g++
 LIBS=
 LIB_PATHS=
 INCLUDE_PATHS=
-CFLAGS=-O2 -std=c++11 -Wall	 -W -Wno-uninitialized -fstrict-aliasing
+CFLAGS=-O2 -std=c++11 -Wall	 -W -Wno-uninitialized -fstrict-aliasing 
 
 EXECUTABLE=lbm
 

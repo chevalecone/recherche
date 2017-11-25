@@ -12,7 +12,7 @@ using namespace std;
 #include "function.h" 
 #include "compute_quantities.h"
 
-
+//Fonction permettant le calcul de la force de traînée selon Mei et al. (2002) sur le principe du momentum exchange
 double drag_force( int Q, bool* typeLat, int** conn, double** xi,  int* bb,  int* pos, Lattice lat)
 {
 	double dforce =0; //drag force
@@ -31,6 +31,7 @@ double drag_force( int Q, bool* typeLat, int** conn, double** xi,  int* bb,  int
 		return dforce;
 }
 
+//Fonction permettant le calcul de la force de portance selon Mei et al. (2002) sur le principe du momentum exchange
 double lift_force( int Q, bool* typeLat, int** conn, double** xi,  int* bb,  int* pos, Lattice lat)
 {
 	double lforce =0; //drag force
@@ -49,6 +50,8 @@ double lift_force( int Q, bool* typeLat, int** conn, double** xi,  int* bb,  int
 		return lforce;
 }
 
+//Fonction permettant le calcul de la vorticité
+//Rappel : Vorticité : V = 0.5 * (d(ux)/dy - d(uy)/dx) . z (vorticité sur l'axe z)
 void vorticite(int nx,int ny, Lattice lat,double dx, bool* typeLat, int** conn)
 {
 	for (int j=0;j<nx*ny;j++)
@@ -64,6 +67,9 @@ void vorticite(int nx,int ny, Lattice lat,double dx, bool* typeLat, int** conn)
 	}
 }
 
+//Fonction permettant le calcul de la vorticité
+//T = somme(U)/somme(u) où U = sqrt(u²+v²) et u est la composante selon l'axe principal de la vitesse //(Provient de Nabovati et Sousa)
+//Une autre formule est disponible : T = somme(U/u)
 double tortuosite(int nx,int ny, Lattice lat,double dx, bool* typeLat, int** conn)
 {
 	double v_mag =0, v_x = 0;

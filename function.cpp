@@ -256,14 +256,17 @@ void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double
 		}
 	}
 	int num = 0;
+	int borne1 = (int)(floor(nx*0.1)),borne2 = (int)(floor(nx*0.9)),borne3 = (int)(floor(ny*0.1)), borne4 = (int)(floor(ny*0.9));
 	double poro2;
 	int buf = 0;
 	srand(time(NULL));
-	int rnd  = rand()%(nx-20) + 10 ;
-	int rnd2 = rand()%(ny-20) + 10 ;
-	int ratio = rand()%30 + 10; //diametre entre 10 et 40 % de la largeur
+	int rnd  = rand()%borne2 + borne1 ;
+	int rnd2 = rand()%borne4 + borne3 ;
+	int MIN = 10;
+	int MAX = 40;
+	int ratio = rand()%MAX+MIN; //diametre entre 10 et 40 % de la largeur
 	double abscisse =  position[rnd][0];  // abscisse entre 10 et 90 % de la longueur
-	double ordonnee =  position[rnd2*100][1];  // ordonnée entre 10 et 90 % de la largeur
+	double ordonnee =  position[rnd2*nx][1];  // ordonnée entre 10 et 90 % de la largeur
 	srand(time(NULL));
     double diametre = (ratio)*0.01*ny;	
 
@@ -295,12 +298,11 @@ void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double
 				}
 			}
 		}
-		rnd  = rand()%(nx-20)+10;
-		rnd2 = rand()%(nx-20)+10;
-		//ratio = 30;
-		ratio = rand()%30 + 10;
+		rnd  = rand()%borne2 + borne1 ;
+		rnd2 = rand()%borne4 + borne3 ;
+		ratio = rand()%MAX + MIN; //diametre entre 10 et 40 % de la largeur
 		abscisse =  position[rnd][0];
-		ordonnee =  position[rnd2*100][1];
+		ordonnee =  position[rnd2*nx][1];
 		diametre = (ratio)*0.01*ny;	
 		buf = 0;
 		poro2 = porosite (typeLat,nombre,N);
@@ -320,6 +322,7 @@ void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double
 	}
 }
 
+//Fonction générant des cylindres à section carrée jusqu'à la porosité voulue, SANS encastrement
 void randomSquare(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre, double** cylinder)
 {
 	bool* typeLat_buf = new bool[N];
@@ -377,6 +380,8 @@ void randomSquare(int nx, int ny, double xmin,double xmax, double ymin, double y
 	}
 }
 
+//Fonction de nettoyage, enlevant les défauts numériques lors de la création de milieu poreux aléatoire
+//Les fausses lattices considérées comme solides alors que ne faisant pas partie d'un cylindre sont rendues fluides
 void nettoyage(bool* typeLat, int** conn, int N, int Q)
 {
 	int buf =0;
@@ -403,6 +408,7 @@ void nettoyage(bool* typeLat, int** conn, int N, int Q)
 	}
 }
 
+//Fonction de calcul de la porosité : PHI = Volume fluide/Volume total = (Nombre total de lattices - Nombre de lattices solides)/ Nombre de lattices total
 double porosite (bool* typeLat, int nombre, int N)
 {
 	nombre=0;
@@ -429,31 +435,33 @@ void typeSquare( int N, double** coin, double** position, bool* typeLat)
 }
 
 
-
+//Fonction permettant de donner le numéro des lattices voisines en fonction du schéma D2Q9
 void connectivite(int nx,int ny,  int Q, int** conn)
 {
 	for ( int j=0;j<nx*ny;j++)
 	{
 		conn[j]= new int[Q];
 		conn[j][0] = j;
-		conn[j][1] = j+1;
-		conn[j][2] = j+nx;
-		conn[j][3] = j-1;
-		conn[j][4] = j-nx;
-		conn[j][5] = j+nx+1;
-		conn[j][6] = j+nx-1;
-		conn[j][7] = j-nx-1;
-		conn[j][8] = j-nx+1;
+		conn[j][1] = j+1; //Voisin Est
+		conn[j][2] = j+nx; //Voisin Nord
+		conn[j][3] = j-1; //Voisin Ouest
+		conn[j][4] = j-nx; //Voisin Sud
+		conn[j][5] = j+nx+1; //Voisin Nord-Est
+		conn[j][6] = j+nx-1; //Voisin Nord-Ouest
+		conn[j][7] = j-nx-1; //Voisin Sud-Ouest
+		conn[j][8] = j-nx+1; //Voisin Sud-Est
 	}
+	//Puis, on réajuste pour les lattices aux frontières, dans certaines directions elles n'ont pas de voisines
+	//Le tableau connectivite sert pour la propagation, le traitement des conditions aux frontières etc...
 	for ( int j=0;j<nx*ny;j++)
 	{
-		if((j%nx)==0)
+		if((j%nx)==0) //Si la lattice est sur la frontière Ouest, elle ne possède pas de voisin dans les direction 3 6 et 7
 		{
 			conn[j][6] = -1;
 			conn[j][3] = -1;
 			conn[j][7] = -1;
 		}
-		if((j%nx)==nx-1)
+		if((j%nx)==nx-1) //Si la lattice est sur la frontière Est, elle ne possède pas de voisin dans les direction 1 5 et 8
 		{
 			conn[j][1] = -1;
 			conn[j][5] = -1;
@@ -461,7 +469,7 @@ void connectivite(int nx,int ny,  int Q, int** conn)
 		}
 		for ( int k=0;k<Q;k++)
 		{
-			if (conn[j][k]<0 || conn[j][k]>=nx*ny)
+			if (conn[j][k]<0 || conn[j][k]>=nx*ny) //Si le voisin d'une lattice dépasse la numérotation du domaine, alors ce voisin est situé en dehors du domaine
 			{
 				conn[j][k] = -1;
 			}
@@ -469,7 +477,8 @@ void connectivite(int nx,int ny,  int Q, int** conn)
 	}
 }
 
-void pos_solide (bool* typeLat,  int* pos, int nx, int ny) //Donne les positions min et max des lattices solides
+//Fonction donnant les positions min et max des lattices solides (pour réduire les boucles où ont lieu des traitements sur des parois solides)
+void pos_solide (bool* typeLat,  int* pos, int nx, int ny) 
 {
 	 int pos1 = 0; //position de la première lattice solide
 	 int pos2 = nx*ny-1; //position de la dernière lattice solide
@@ -487,6 +496,7 @@ void pos_solide (bool* typeLat,  int* pos, int nx, int ny) //Donne les positions
 	pos[1] = pos2;
 }
 
+//Fonction donnant une relation entre une lattice, la direction de propagation, et la direction opposée pour le bounce-back (utile pour des bounceback_BC)
 void bounceback_neighbour( int* bb,  int Q)
 {
 	bb[0] = 0;
@@ -505,8 +515,9 @@ void bounceback_neighbour( int* bb,  int Q)
 
 }
 
-
-double Ei_big(int n, double x)//Donne la valeur de Ei(x) pour des grandes valeurs de x
+//Fonction donnant la valeur de l'intégrale exponentiellee Ei(x) pour des grandes valeurs de x (utile pour la wall function de Stops)
+// NE PAS TOUCHER
+double Ei_big(int n, double x)
 {
 	int i,ii,nm1;
 	double a,b,c,d,del,fact,h,psi,ans;
@@ -569,6 +580,7 @@ double Ei_big(int n, double x)//Donne la valeur de Ei(x) pour des grandes valeur
 }
 
 //Rappel Qi = ci*ci - cs² * I
+//Matrice intervenant dans le calcul des conditions frontières pour la condition régularisée de Latt
 double*** Qi_function (int k, double cs, double** xi, int D, int Q)
 {
 	double*** Qi = new double**[Q];
@@ -634,6 +646,7 @@ void fi_equilibre (int j, int k, double rho, double cs, Lattice lat, double* u, 
 	delete[] sum3;
 }
 
+//Autre manière de calculer les populations à l'équilibre
 void fi_equilibre_v2 (int j, int k, double rho, double cs, Lattice lat, double* u, double** xi, int D, double*** Qi, double* buffer, double* omega_i, double sigma, double* buffer2)
 {
 	for (int i =0;i<10;i++)
@@ -670,8 +683,8 @@ void fi_equilibre_v2 (int j, int k, double rho, double cs, Lattice lat, double* 
 	delete[] buffer;
 }
 
-
-	void simplified_fi_equilibre (int j, double rho, double cs, Lattice lat, double* u, double** xi, int D, double* omega_i, double* feq, int Q)
+//Manière de calculer les populations à l'équilibre uniquement en D2Qk (on développe de manière brute la formule de la population à l'équilibre)
+void simplified_fi_equilibre (int j, double rho, double cs, Lattice lat, double* u, double** xi, int D, double* omega_i, double* feq, int Q)
 {
 	for (int k=0;k<Q;k++)
 	{
@@ -680,6 +693,7 @@ void fi_equilibre_v2 (int j, int k, double rho, double cs, Lattice lat, double* 
 }
 
 //0.0564 0.1128 0.1692 0.2257 0.3385 0.4514 0.6670 0.9027 1.1284 1.6926 2.2568 3.3851 4.5135 6.7703 9.0270 11.2838 16.9257
+//Fonction pouvant être utile pour identifier les fichiers enregistrés et leurs noms en fonction du Kn simulé
 char FileName(double Kn)
 {
 	if (Kn==0.0564)
@@ -756,6 +770,7 @@ char FileName(double Kn)
 	}
 }
 
+//Fonction de création de la matrice Pi, intervenant dans le calcul de la condition régularisée de Latt (uniquement pour l'entrée en OUEST)
 void PI_neq_inlet(double** Pi_neq, int j, int Q, Lattice lat, double*** Qi, double* buffer, int* bb)
 {
 	for (int i =0;i<10;i++)
@@ -785,6 +800,7 @@ void PI_neq_inlet(double** Pi_neq, int j, int Q, Lattice lat, double*** Qi, doub
 	Pi_neq[1][1] = buffer[3];
 }
 
+//Fonction de création de la matrice Pi, intervenant dans le calcul de la condition régularisée de Latt (uniquement pour la sortie en EST)
 void PI_neq_outlet(double** Pi_neq, int j, int Q, Lattice lat, double*** Qi, double* buffer, int* bb)
 {
 	for (int i =0;i<10;i++)
@@ -814,7 +830,7 @@ void PI_neq_outlet(double** Pi_neq, int j, int Q, Lattice lat, double*** Qi, dou
 	Pi_neq[1][1] = buffer[3];
 }
 
-
+//Fonction calculant la population régularisée dans le cadre de la condition régularisée de Latt
 void fi_bar(double* omega_i, double***Qi, double** Pi_neq, double cs, int j, int D, Lattice lat, double* buffer, int Q)
 {
 	for (int k=0;k<Q;k++)
@@ -847,6 +863,7 @@ double porosity( bool* typeLat, int N)
 	return poro;
 }
 
+//Tableau permettant d'identifier les voisins avec une base 2 (utile pour les interfaces solide/fluide et déterminer les directions de bounce-back ou autres)
 void tab_voisin(int N, int Q, bool* typeLat, int* tab_Voisin, int** conn)
 {
 	int buf;

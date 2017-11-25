@@ -29,10 +29,10 @@
 
 //Variables de la simulation
 # define RHO 1
-# define MU 0.3
+# define MU 1
 # define DX 1
 
-# define dRHO 1.05
+# define dRHO 1.2
 # define dFi 0.000000
 # define U_IN_x 0.0
 # define U_IN_y 0.
@@ -42,16 +42,16 @@
 # define UW_Y 0
 # define R 1
 # define BETA 1
-# define PORO 0.66
+# define PORO 0.75
 // 0.0564 0.1128 0.1692 0.2257 0.3385 0.4514     0.6670 0.9027 1.1284 1.6926 2.2568 3.3851    4.5135 6.7703 9.0270 11.2838 16.9257 
 //0.0564 0.1692 0.3385 1.6926 3.3851
 # define KNU  0.388
 # define XMIN 0
-# define XMAX 100
+# define XMAX 200
 # define YMIN 0
-# define YMAX 50
-# define OUTPUT 100
-# define PRECISION 0.0000005
+# define YMAX 100
+# define OUTPUT 1000
+# define PRECISION 0.00000005
 
 
 int main()
@@ -134,19 +134,16 @@ int main()
 	int **conn = new int*[N]; //Matrice de connectivité des lattices
 	bool* typeLat = new bool[N]; //booléen pour déterminer si le noeud est solide (true) ou fluide (false)
 	double** S = new double*[N];
-	
 	double **xi = new double*[Q];//Tableau des vecteurs des vitesses du modèle
 	double** Pi_neq = new double*[D];
 	double omega_i[Q];//Vecteur des poids en fonction de la direction de la vitesse dans la lattice
-	double* Uw = new double[2];
+	double* Uw = new double[2]; //Vecteur de vitesse de la frontière NORD (pour écoulement de Couette)
 	 Uw[0] = UW_X;
 	 Uw[1] = UW_Y;
-	
 	int* bb = new  int[Q]; //array des populations de bounceback
 	bounceback_neighbour(bb,Q); //remplissage de la matrice bb
 	
-	//Cas avec terme de forçage
-	double *Fi = new double[D]; //Terme de forçage
+	double *Fi = new double[D]; //Body force à N dimensions
 	 for (i=0;i<D;i++)
 	{
 		Pi_neq[i] = new double[D];
@@ -175,6 +172,7 @@ int main()
 //***********************INITIALISATION DE LA GEOMETRIE DE LATTICE***************************//
 	D2Q9(omega_i,xi,xi_r); //Remplissage des poids omega_i et des vecteurs vitesses en fonction de la géométrie considérée
 	connectivite(nx,ny,Q,conn);// Matrice de connectivité
+	
 //***********************************POSITION DES LATTICES***********************************//
 	localisation(nx,ny,dx,position); //Coordonnées de chaque noeud
 	domainCondition(nx,ny,cas);	//Cas pour les BC aux frontières du domaine
@@ -199,9 +197,10 @@ int main()
 	double ratio2 = 0.001;
 	for (j=0;j<ny;j++)
 	{
-		v_in[j] = new double[2];
-		v_out[j] = new double[2];
+		v_in[j] = new double[2]; //vecteur vitesse d'entrée
+		v_out[j] = new double[2];// vecteur vitesse de sortie
 		
+		//Créations profils de vitesse type Poiseuille
 		Umaxx= ratio2*cs;
 		v_in[j][0] = Umaxx*(4*position[j*nx][1]/ymax-4*position[j*nx][1]*position[j*nx][1]/(ymax*ymax)); 
 		v_in[j][1] = 0;
@@ -210,8 +209,7 @@ int main()
 	}
 
 //******************************CREATION DES SOLIDES******************************************//
-	//CYLINDRE A SECTION CARREE
-	double ratio = 0.71,nombre =0;
+	double ratio = 0.3,nombre =0;
 	double** cylinder1  = new double*[4];
 	double** cylinder2  = new double*[4];
 	double** cylinder3  = new double*[4];
@@ -219,8 +217,10 @@ int main()
 	double** cylinder5  = new double*[4];	
 
 	poro = PORO;
-	//randomCircular(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro,nombre);
-	randomEllipse(nx, ny, xmin, xmax, ymin, ymax, N, position, typeLat, poro, nombre);
+	//Milieu poreux aléatoire avec des cylindres à section cylindriques
+	randomCircular(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro,nombre);
+	//Milieu poreux aléatoire avec des cylindres à section elliptique
+	//randomEllipse(nx, ny, xmin, xmax, ymin, ymax, N, position, typeLat, poro, nombre);
 	
 	
 	for (j=0;j<4;j++)
@@ -231,6 +231,7 @@ int main()
 		cylinder4[j] = new double[D];
 		cylinder5[j] = new double[D];
 	}
+	//Milieu poreux aléatoire avec des cylindres à section carré
 	//randomSquare(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro, nombre, cylinder1);
 	/*SquareCylinder(0,0,ratio*ymax,cylinder1);
 	SquareCylinder(xmax,0,ratio*ymax,cylinder2);
@@ -248,9 +249,9 @@ int main()
 	//typeCircular(0,ymax,ratio*ymax,N,position,typeLat);
 	//typeCircular(xmax,ymax,ratio*ymax,N,position,typeLat);
 	//typeCircular(0.5*xmax,0.5*ymax,ratio*ymax,N,position,typeLat);
-	/*poro = porosite(typeLat,nombre,N);
+	poro = porosite(typeLat,nombre,N);
 	printf("poro : %f\n",poro);
-	printf("Diametre : %f\n",100*ratio);*/
+	printf("Diametre : %f\n",100*ratio);
 	
 	int *pos = new int[2];
 	pos_solide(typeLat, pos,nx,ny);
@@ -275,6 +276,7 @@ int main()
 	
 //*************************SLIP VELOCITY***************************//
 
+	//Coefficients des vitesses de glissements considérés
 	sigma = 1;
 	// 'Guo-2008' , 'Guo-2011' , 'Wang-2017' , 'Hadjiconstantinou-2003' , 'Li-2011' , 'Wu-2008' , 'de Izarra-2012'
 	std::string slip ("Guo-2008");
@@ -283,6 +285,7 @@ int main()
 	
 //************************WALL FUNCTION***************************//
 
+	//Définition de la wall function considérée
 	// 'Guo-2008' , 'Zhang-2006' , 'Dongari-2011' , 'Arlemark-2010' , 'Guo_Shu-2013'
 	bool boolean_wfunction = false;	
 	std::string wfunction ("Guo-2008");
@@ -290,6 +293,7 @@ int main()
 	
 //*************************RAREFIED METHOD*********************************//
 
+	//Choix de la méthode de raréfaction utilisée (dépend de la condition limite, présence ou non de wall function)
 	std::string rarefied_method;
 	// CBBSR DBB MR Continuous
 	std::string rarefied_BC ("Continuous");
@@ -305,7 +309,7 @@ int main()
 	tau_q = temp2[2];
 			
 		
-//*******************************AFFICHAGE******************************//	
+//*******************************AFFICHAGE INITIAL******************************//	
 
 	printf("nu = %f\n",nu);
 	printf("Kn = %f\n",Kn);
@@ -325,11 +329,11 @@ int main()
 	printf("Domaine : [ %.0f %.0f ] x [ %.0f %.0f ]\n",xmin,xmax,ymin,ymax);
 	printf("Erreur d'arrêt : %f\n", error);
 	printf("Nombre de lattices : %d\n",N);  
-
-	/* std:: cout << "  Number of processors available = " << omp_get_num_procs ( ) << "\n"<< std::endl;
+	/*omp_set_num_threads(4);
+	 std:: cout << "  Number of processors available = " << omp_get_num_procs ( ) << "\n"<< std::endl;
 	  std ::cout << "  Number of threads =              " << omp_get_max_threads ( ) << "\n" <<std::endl;*/
 	  
-//*************************************INITIALISATION MRT*****************************************//
+//*************************************INITIALISATION RELAXATION MRT*****************************************//
 
 double**  M = MRT_matrice_passage(Q); //Matrice de passage des populations aux moments
 double** invM = new double*[Q]; //Matrice de l'inverse de M		
@@ -427,6 +431,7 @@ initialisation_domain (N,nx,ny,lat,rho_in,rho_out,v_in,v_out,Uw, D,Q,xi,sigma, o
 //******************************BOUCLE TEMPORELLE******************************************//
 while((erreur>error || erreur<-error))	
 {		
+	
 	for (j=0 ; j<N ; j++) //Pour chaque lattice
     {
 		
@@ -456,12 +461,12 @@ while((erreur>error || erreur<-error))
 			fi_equilibre (j,k,lat.rho_[j],cs,lat,lat.u_[j],xi,D,Qi,buffer,omega_i,sigma);	
 		}
 		//regularized_BC_v_inlet(j,k,lat,cs,v_in,nx,xi,D,Qi,buffer,omega_i,cas[j],Pi_neq,Q,f_neq, bb,sigma);
-		//regularized_BC_p_inlet(j,k,lat,cs,rho_in,xi,D,Qi,buffer,omega_i,cas[j],Pi_neq,Q,f_neq,bb,sigma);
-		//regularized_BC_p_outlet(j,k,lat,cs,rho_out,xi,D,Qi,buffer,omega_i,cas[j],Pi_neq,Q,f_neq,bb,sigma);
-		/*for (k=0;k<Q;k++)
+		regularized_BC_p_inlet(j,k,lat,cs,rho_in,xi,D,Qi,buffer,omega_i,cas[j],Pi_neq,Q,f_neq,bb,sigma);
+		regularized_BC_p_outlet(j,k,lat,cs,rho_out,xi,D,Qi,buffer,omega_i,cas[j],Pi_neq,Q,f_neq,bb,sigma);
+		for (k=0;k<Q;k++)
 		{
 			fi_equilibre (j,k,lat.rho_[j],cs,lat,lat.u_[j],xi,D,Qi,buffer,omega_i,sigma);	
-		}*/
+		}
 		/*for (k=0;k<Q;k++)
 		{
 			f_star[j][k] = lat.f_[j][k]-1/tau*(lat.f_[j][k]-lat.f0_[j][k]); //Collision en SRT
@@ -494,7 +499,7 @@ while((erreur>error || erreur<-error))
 		//pression_in_BC( j,cas[j],lat,xi_r,rho_in);
         //pression_out_BC( j,cas[j],lat,xi_r,rho_out);		
 		periodic_NS_BC(j,nx,ny,cas[j],lat,f_star); 
-		periodic_pressure_WE_BC (j, nx, ny, cas[j], lat, f_star, dRHO, sigma,cs);		
+		//periodic_pressure_WE_BC (j, nx, ny, cas[j], lat, f_star, dRHO, sigma,cs);		
 	    //bounceback_N_BC(j,cas[j],lat,f_star);
        // bounceback_S_BC(j,cas[j],lat,f_star);
 
@@ -513,13 +518,14 @@ while((erreur>error || erreur<-error))
 			lat.u_[j][1] = 0;
 		}
 	}
+	
                // Ecriture des résultats	
         if (it%outputFrequency==0 && it!=0) 
 		{
 			char name = FileName(Kn);
 			//vorticite(nx,ny,lat,dx,typeLat,conn);
 			ttsity = tortuosite(nx,ny,lat,dx,typeLat,conn);
-			writeLattice(domain,"LBM",Kn,mu,name,it,lat);
+			//writeLattice(domain,"LBM",Kn,poro,name,it,lat);
 			valeur2 = 0;
 			for (int j=0;j<N;j++)
 			{
@@ -532,7 +538,7 @@ while((erreur>error || erreur<-error))
 		it++;
 }
 	char name = FileName(Kn);
-	writeLattice(domain,"LBM",Kn,mu,name,it,lat);
+	writeLattice(domain,"LBM",Kn,poro,name,it,lat);
 	time_t timer2 = time(NULL);
 	printf("Temps d'exécution : %d s\n",(int)(timer2-timer1));
 	printf("Temps d'exécution pour 1000 itérations: %.2f s\n",(double)((int)(timer2-timer1))/it*1000);

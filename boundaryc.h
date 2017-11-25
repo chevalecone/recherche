@@ -4,22 +4,22 @@
 
 void propagation( int const& j, Lattice lat, double** f_star,bool* typeLat, int** conn, int* bb, int Q);
  
-
+//CONDITIONS PERIODIQUES FRONTIERES
 void periodic_WE_BC( int j,int nx, int ny,  int cas, Lattice lat, double** f_star);
 void periodic_NS_BC( int j,int nx, int ny,  int cas, Lattice lat, double** f_star);
 void periodic_pressure_WE_BC (int j, int nx, int ny, int cas, Lattice lat, double** f_star, double dRHO, double sigma, double cs);
 
-
+//CONDITIONS BOUNCE-BACK FRONTIERES
 void bounceback_N_BC( int j, int cas, Lattice lat, double** f_star);
 void bounceback_S_BC( int j, int cas, Lattice lat, double** f_star);
 void bounceback_E_BC( int j, int cas, Lattice lat, double** f_star);
 void bounceback_W_BC( int j, int cas, Lattice lat, double** f_star);
 
-//SOLIDES
+//CONDITIONS TRAITEMENT INTERFACE FLUIDE/SOLIDE
 void bounceback_solid_BC( int nx,int const& j, Lattice lat, double** f_star, int** const& conn, bool* typeLat,  int* const& bb, double& nombre, int* pos, int cas);
 void CBBSR_solid_square_BC(int nx, int const& j, Lattice lat, double** f_star, int** const& conn, bool*  typeLat, double r, int* pos, int tabVoisin);
 
-//Special BC for lid-driven cavity
+//CONDITION ZOU-HE POUR PAROI MOBILE
 void driven_cavity_nord( int j,  int cas, Lattice lat, double xi_r,double v_e);
 
 //ZOU-HE

@@ -16,128 +16,144 @@
 
 
 
-
+//Fonction de propagation des populations
+//f(x+dx,t+dt) = f*(x,t)
 void propagation( int const& j, Lattice lat, double** f_star, bool* typeLat, int** conn, int* bb, int Q)
 {
 	for (int k=0;k<Q;k++)
 	{
+		//Condition pour qu'il y ait propagation : pour la lattice j considérée
+		//si son voisin bb[k] (à l'opposé de k) ne sort pas du domaine
+		//si la lattice est une lattice fluide
+		//si son voisin bb[k] est une lattice fluide
+		//Alors on peut propager
 		if(conn[j][bb[k]]!=-1 && !typeLat[j] && !typeLat[conn[j][bb[k]]])
 		{
 			lat.f_[j][k] = f_star[conn[j][bb[k]]][k];
 		}
 	}
 }
+
+//Fonction de traitement des conditions aux frontières : conditions périodiques Nord/Sud
 void periodic_NS_BC( int j,int nx, int ny,  int cas, Lattice lat, double** f_star)
 {
+	//En fonction du cas de la cellule
 	switch (cas)
 	{
-		case 3:
+		case 3: //Cas NORD
 		lat.f_[j][4] = f_star[j%nx][4]; //Condition périodique en entrée
 		lat.f_[j][7] = f_star[j%nx+1][7];
 		lat.f_[j][8] = f_star[j%nx-1][8];
 		break;
-		case 4:
+		case 4: //Cas SUD
 		lat.f_[j][6] = f_star[nx*ny-nx+j+1][6]; //Condition périodique en sortie
 		lat.f_[j][2] = f_star[nx*ny-nx+j][2];
 		lat.f_[j][5] = f_star[nx*ny-nx+j-1][5];
 		break;
-		case 5:
+		/*case 5: //Cas SUD-OUEST
 		lat.f_[j][2] = f_star[nx*ny-nx][2]; //Conditions périodique en sortie
 		lat.f_[j][6] = f_star[nx*ny-nx+1][6];
 		lat.f_[j][5] = f_star[nx*ny-1][5];
 		break;
-		case 6:
+		case 6://Cas SUD-EST
 		lat.f_[j][2] = f_star[nx*ny-1][2]; //Condition périodique en sortie
 		lat.f_[j][5] = f_star[nx*ny-2][5];
 		lat.f_[j][8] = f_star[nx*ny-nx][8];
 		break;
-		case 7:
+		case 7://Cas NORD-OUEST
 		lat.f_[j][4] = f_star[0][4];//Condition périodique en entrée
 		lat.f_[j][7] = f_star[1][7];
 		lat.f_[j][8] = f_star[nx-1][8];
-		break;
+		break;//Cas NORD-EST
 		case 8:
 		lat.f_[j][4] = f_star[nx-1][4]; //Condition périodique en entrée
 		lat.f_[j][8] = f_star[nx-2][8];
 		lat.f_[j][7] = f_star[0][7];
-		break;
+		break;*/
 	}
 }
+
+//Fonction de traitement des conditions aux frontières : conditions périodiques Ouest/Est
 void periodic_WE_BC( int j,int nx, int ny,  int cas, Lattice lat, double** f_star)
 {
+	//En fonction du cas de la cellule
 	switch (cas)
 	{
-		case 1: //ouest
-		lat.f_[j][1] = f_star[j+nx-1][1]; //Condition périodique en entrée
+		case 1: //Cas OUEST
+		lat.f_[j][1] = f_star[j+nx-1][1]; 
 		lat.f_[j][5] = f_star[j-1][5];
 		lat.f_[j][8] = f_star[j+2*nx-1][8];
 		break;
-		case 2: //est
-		lat.f_[j][3] = f_star[j-nx+1][3]; //Condition périodique en sortie
+		case 2: //Cas EST
+		lat.f_[j][3] = f_star[j-nx+1][3]; 
 		lat.f_[j][6] = f_star[j-2*nx+1][6];
 		lat.f_[j][7] = f_star[j+1][7];
 		break;
-		case 5://S-O
-		lat.f_[j][1] = f_star[nx-1][1]; //Conditions périodique en sortie
+		case 5://Cas SUD-OUEST
+		lat.f_[j][1] = f_star[nx-1][1];
 		lat.f_[j][8] = f_star[2*nx-1][8];
 		lat.f_[j][5] = f_star[nx*ny-1][5];
 		break;
-		case 6://S-E
-		lat.f_[j][3] = f_star[0][3]; //Condition périodique en sortie
+		case 6://Cas SUD-EST
+		lat.f_[j][3] = f_star[0][3]; 
 		lat.f_[j][7] = f_star[nx][7];
 		lat.f_[j][6] = f_star[nx*ny-nx][6];
 		break;
-		case 7://N-O
-		lat.f_[j][1] = f_star[nx*ny-1][1];//Condition périodique en entrée
+		case 7://Cas NORD-OUEST
+		lat.f_[j][1] = f_star[nx*ny-1][1];
 		lat.f_[j][5] = f_star[j-1][5];
-		//lat.f_[j][8] = f_star[nx-1][8];
+		lat.f_[j][8] = f_star[nx-1][8];
 		break;
-		case 8://N-E
-		lat.f_[j][3] = f_star[j-nx+1][3]; //Condition périodique en entrée
+		case 8://Cas NORD-EST
+		lat.f_[j][3] = f_star[j-nx+1][3];
 		lat.f_[j][6] = f_star[j-2*nx+1][6];
-		//lat.f_[j][7] = f_star[0][7];
+		lat.f_[j][7] = f_star[0][7];
 		break;
 	}
 }
 
+//Fonction de traitement des conditions aux frontières : conditions périodiques Ouest/Est AVEC gradient de pression (type Zhang et Kwok (2006))
+//Le sigma est déterminé grâce aux conditions suivantes :
+//Même vitesse entre l'entrée et la sortie
+//Gradient de pression entre l'entrée et la sortie égale à dRHO*cs*cs (car P = rho*cs²)
 void periodic_pressure_WE_BC (int j, int nx, int ny, int cas, Lattice lat, double** f_star, double dRHO, double sigma, double cs)
 {
 	
 		switch (cas)
 	{
-		case 1: //ouest
+		case 1: //Cas OUEST
 		sigma = 1./3*(dRHO-1 -(lat.f_[j][0]+lat.f_[j][2]+lat.f_[j][4]-(lat.f_[j+nx-1][0]+lat.f_[j+nx-1][2]+lat.f_[j+nx-1][4])));
-		lat.f_[j][1] = lat.f_[j+nx-1][1] + sigma; //Condition périodique en entrée
+		lat.f_[j][1] = lat.f_[j+nx-1][1] + sigma; 
 		lat.f_[j][5] = lat.f_[j+nx-1][5] + 0.25*sigma;
 		lat.f_[j][8] = lat.f_[j+nx-1][8] + 0.25*sigma;
 		break;
-		case 2: //est
+		case 2: //Cas EST
 		sigma = 1./3*(dRHO -1-(lat.f_[j-nx+1][0]+lat.f_[j-nx+1][2]+lat.f_[j-nx+1][4]-(lat.f_[j][0]+lat.f_[j][2]+lat.f_[j][4])));
-		lat.f_[j][3] = lat.f_[j-nx+1][3] - sigma; //Condition périodique en sortie
+		lat.f_[j][3] = lat.f_[j-nx+1][3] - sigma;
 		lat.f_[j][6] = lat.f_[j-nx+1][6] - 0.25*sigma;
 		lat.f_[j][7] = lat.f_[j-nx+1][7] - 0.25*sigma;
 		break;
-		case 5://S-O
+		case 5://Cas SUD-OUEST
 		sigma = 1./3*(dRHO -1-(lat.f_[j][0]+lat.f_[j][2]+lat.f_[j][4]-(lat.f_[j+nx-1][0]+lat.f_[j+nx-1][2]+lat.f_[j+nx-1][4])));
-		lat.f_[j][1] = lat.f_[j+nx-1][1] + sigma; //Condition périodique en entrée
+		lat.f_[j][1] = lat.f_[j+nx-1][1] + sigma; 
 		lat.f_[j][5] = lat.f_[j+nx-1][5] + 0.25*sigma;
 		lat.f_[j][8] = lat.f_[j+nx-1][8] + 0.25*sigma;
 		break;
-		case 6://S-E
+		case 6://Cas SUD-EST
 		sigma = 1./3*(dRHO -1-(lat.f_[j-nx+1][0]+lat.f_[j-nx+1][2]+lat.f_[j-nx+1][4]-(lat.f_[j][0]+lat.f_[j][2]+lat.f_[j][4])));
-		lat.f_[j][3] = lat.f_[j-nx+1][3] - sigma; //Condition périodique en sortie
+		lat.f_[j][3] = lat.f_[j-nx+1][3] - sigma;
 		lat.f_[j][6] = lat.f_[j-nx+1][6] - 0.25*sigma;
 		lat.f_[j][7] = lat.f_[j-nx+1][7] - 0.25*sigma;
 		break;
-		case 7://N-O
+		case 7://Cas NORD-OUEST
 		sigma = 1./3*(dRHO -1-(lat.f_[j][0]+lat.f_[j][2]+lat.f_[j][4]-(lat.f_[j+nx-1][0]+lat.f_[j+nx-1][2]+lat.f_[j+nx-1][4])));
-		lat.f_[j][1] = lat.f_[j+nx-1][1] + sigma; //Condition périodique en entrée
+		lat.f_[j][1] = lat.f_[j+nx-1][1] + sigma;
 		lat.f_[j][5] = lat.f_[j+nx-1][5] + 0.25*sigma;
 		lat.f_[j][8] = lat.f_[j+nx-1][8] + 0.25*sigma;
 		break;
-		case 8://N-E
+		case 8://Cas NORD-EST
 		sigma = 1./3*(dRHO-1 -(lat.f_[j-nx+1][0]+lat.f_[j-nx+1][2]+lat.f_[j-nx+1][4]-(lat.f_[j][0]+lat.f_[j][2]+lat.f_[j][4])));
-		lat.f_[j][3] = lat.f_[j-nx+1][3] - sigma; //Condition périodique en sortie
+		lat.f_[j][3] = lat.f_[j-nx+1][3] - sigma;
 		lat.f_[j][6] = lat.f_[j-nx+1][6] - 0.25*sigma;
 		lat.f_[j][7] = lat.f_[j-nx+1][7] - 0.25*sigma;
 		break;
@@ -145,22 +161,27 @@ void periodic_pressure_WE_BC (int j, int nx, int ny, int cas, Lattice lat, doubl
 }
 
 
-//HWBB pour le solide carré
+//Fonction de traitement des conditions limites : Halfway bounce-back pour les solides DANS LE DOMAINE
 void bounceback_solid_BC(int nx, int const& j, Lattice lat, double** f_star, int** const& conn, bool*  typeLat,  int* const& bb, double& nombre, int* pos, int cas) //Cas spéciaux pour le solide (coins et voisins)
 {
-	//if(j>pos[0]-nx-2 && j<pos[1]+nx+2)
-	//{
-		for (int k=0;k<9;k++)
-		{	
-			if ( conn[j][k]!=-1 && !typeLat[j] && typeLat[conn[j][k]])//Si la lattice est fluide et son voisin est un solide, alors il y a BB
-			{
-				lat.f_[j][bb[k]] = f_star[j][k];
-				//nombre++;
-			}
+	for (int k=0;k<9;k++)
+	{	
+		//Condition pour le bounce-back DANS le domaineSi
+		//Si le voisin dans la direction du bounce-back n'est pas hors du domaine
+		//Si la lattice j est une lattice fluide
+		//Si le voisin dans la direction du bounce-back est une lattice solide
+		//Alors il y a BB
+		// Attention ! On ne fait pas le contraire (si la lattice est solide, et que le voisin est fluide, alors on effectue un traitement sur les populations du voisin fluide)
+		//Car pour des mur convexes, il peut y avoir redondance
+		if ( conn[j][k]!=-1 && !typeLat[j] && typeLat[conn[j][k]])
+		{
+			lat.f_[j][bb[k]] = f_star[j][k];
 		}
-	//}
+	}
 }
 
+
+//Fonction de traitement des conditions limites : CBBSR pour les solides DANS LE DOMAINE
 void CBBSR_solid_square_BC(int nx, int const& j, Lattice lat, double** f_star, int** const& conn, bool*  typeLat, double r, int* pos, int tabVoisin)
 {
 	switch (tabVoisin)
@@ -242,6 +263,7 @@ void CBBSR_solid_square_BC(int nx, int const& j, Lattice lat, double** f_star, i
 	}
 }
 
+//Fonction de traitement des conditions d'entrée sortie : Pression imposée en entrée, type ZOU-HE
 void pression_in_BC( int j,  int cas, Lattice lat, double xi_r, double rho_in)
 {
 	double u_x;
@@ -262,7 +284,6 @@ void pression_in_BC( int j,  int cas, Lattice lat, double xi_r, double rho_in)
 		lat.f_[j][5] = lat.f_[j][7]-0.5*(lat.f_[j][2]-lat.f_[j][4])+1/(6*xi_r)*rho_in*u_x ;//+ 1/(2*xi_r)*rho_in*lat.u_[j][1];
 		lat.f_[j][8] = lat.f_[j][6]+0.5*(lat.f_[j][2]-lat.f_[j][4])+1/(6*xi_r)*rho_in*u_x ;// - 1/(2*xi_r)*rho_in*lat.u_[j][1];*/
 		break;
-
 		case 7: //Coin Nord-Ouest
 		lat.f_[j][1] = lat.f_[j][3];
 		lat.f_[j][7] = 0.5*(rho_in-(lat.f_[j][0]+lat.f_[j][1]+lat.f_[j][2]+lat.f_[j][3]+lat.f_[j][4]+lat.f_[j][6]+lat.f_[j][8]));
@@ -275,7 +296,7 @@ void pression_in_BC( int j,  int cas, Lattice lat, double xi_r, double rho_in)
 	}
 }
 
-
+//Fonction de traitement des conditions d'entrée sortie : Vitesse imposée en entrée, type ZOU-HE
 void vitesse_in_BC( int j,int nx,int cas, Lattice lat, double xi_r, double** v_in)
 {
 	switch (cas)
@@ -309,6 +330,7 @@ void vitesse_in_BC( int j,int nx,int cas, Lattice lat, double xi_r, double** v_i
 	}
 }
 
+//Fonction de traitement des conditions d'entrée sortie : Pression imposée en sortie, type ZOU-HE
 void pression_out_BC( int j,  int cas, Lattice lat, double xi_r,double rho_out)
 {
 	double u_x;
@@ -342,6 +364,8 @@ void pression_out_BC( int j,  int cas, Lattice lat, double xi_r,double rho_out)
 		break;
 	}
 }
+
+//Fonction de traitement des conditions d'entrée sortie : Vitesse imposée en sortie, type ZOU-HE
 void vitesse_out_BC( int j,int nx,int cas, Lattice lat, double xi_r,double** v_out)
 {
 	switch (cas)
@@ -367,7 +391,7 @@ void vitesse_out_BC( int j,int nx,int cas, Lattice lat, double xi_r,double** v_o
 	}
 }
 	
-
+//Fonction de traitement des conditions aux frontières : Vitesse imposée sur la frontière Nord (pour créer une paroi mobile), type ZOU-HE
 void driven_cavity_nord( int j,  int cas, Lattice lat, double xi_r,double v_e)
 {
 	switch (cas)
@@ -393,6 +417,7 @@ void driven_cavity_nord( int j,  int cas, Lattice lat, double xi_r,double v_e)
 	}
 }
 
+//Fonction de traitement des conditions aux frontières : Halfway bounce-back sur la frontière NORD
 void bounceback_N_BC( int j, int cas, Lattice lat, double** f_star)
 {
 	switch (cas)
@@ -404,16 +429,18 @@ void bounceback_N_BC( int j, int cas, Lattice lat, double** f_star)
 		break;
 		case 7: //NO
 		lat.f_[j][4] = f_star[j][2];
-		//lat.f_[j][8] = f_star[j][6];
+		lat.f_[j][8] = f_star[j][6];
 		lat.f_[j][7] = f_star[j][5];
 		break;
 		case 8: //NE
 		lat.f_[j][4] = f_star[j][2]; 	
 		lat.f_[j][8] = f_star[j][6];
-		//lat.f_[j][7] = f_star[j][5];
+		lat.f_[j][7] = f_star[j][5];
 		break;
 	}
 }
+
+//Fonction de traitement des conditions aux frontières : Halfway bounce-back sur la frontière SUD
 void bounceback_S_BC( int j, int cas, Lattice lat, double** f_star)
 {
 	switch (cas)
@@ -425,17 +452,18 @@ void bounceback_S_BC( int j, int cas, Lattice lat, double** f_star)
 		break;
 		case 5: //SO
 		lat.f_[j][2] = f_star[j][4];
-		//lat.f_[j][5] = f_star[j][7];
+		lat.f_[j][5] = f_star[j][7];
 		lat.f_[j][6] = f_star[j][8];
 		break;
 		case 6: //SE
 		lat.f_[j][2] = f_star[j][4];
 		lat.f_[j][5] = f_star[j][7];
-		//lat.f_[j][6] = f_star[j][8];
+		lat.f_[j][6] = f_star[j][8];
 		break;
 	}
 }
 
+//Fonction de traitement des conditions aux frontières : Halfway bounce-back sur la frontière EST
 void bounceback_E_BC( int j, int cas, Lattice lat, double** f_star)
 {
 	switch (cas)
@@ -457,6 +485,8 @@ void bounceback_E_BC( int j, int cas, Lattice lat, double** f_star)
 		break;
 	}
 }
+
+//Fonction de traitement des conditions aux frontières : Halfway bounce-back sur la frontière OUEST
 void bounceback_W_BC( int j, int cas, Lattice lat, double** f_star)
 {
 	switch (cas)
@@ -479,6 +509,7 @@ void bounceback_W_BC( int j, int cas, Lattice lat, double** f_star)
 	}
 }
 
+//Fonction de traitement des conditions aux frontières : Combined bounce-back specular reflection sur la frontière NORD
 void CBBSR_N_BC(int j, int cas, Lattice lat, double r, double** f_star)
 {
 	switch(cas)
@@ -500,6 +531,8 @@ void CBBSR_N_BC(int j, int cas, Lattice lat, double r, double** f_star)
 		break;
 	}
 }
+
+//Fonction de traitement des conditions aux frontières : Combined bounce-back specular reflection sur la frontière NORD
 void CBBSR_S_BC(int j, int cas, Lattice lat, double r, double** f_star)
 {
 	switch (cas)
@@ -522,6 +555,7 @@ void CBBSR_S_BC(int j, int cas, Lattice lat, double r, double** f_star)
 	}
 }
 
+//Fonction de traitement des conditions aux frontières : Combined bounce-back specular reflection sur la frontière NORD avec paroi mobile (pour un écoulement de Couette)
 void CBBSR_N_BC_Couette(int j, int cas, Lattice lat, double r, double** f_star, double uw, double** xi, double cs, double* omega_i)
 {
 	switch(cas)
@@ -545,7 +579,7 @@ void CBBSR_N_BC_Couette(int j, int cas, Lattice lat, double r, double** f_star, 
 }
 
 
-
+//Fonction de traitement des conditions aux frontières : Diffuse bounce-back (bounce-back + maxwellian diffusion) sur la frontière NORD avec paroi mobile (pour un écoulement de Couette)
 void DBB_N_BC_Couette(int j, int cas, Lattice lat, double beta, double** f_star,double cs, double* Uw, double* buffer, double* omega_i,double** xi, int D, int Q, double*** Qi, double sigma)
 {
 	double* buffer2 = new double[Q];
@@ -576,6 +610,7 @@ void DBB_N_BC_Couette(int j, int cas, Lattice lat, double beta, double** f_star,
 	delete[] buffer2;
 }
 
+//Fonction de traitement des conditions aux frontières : Diffuse bounce-back (bounce-back + maxwellian diffusion) sur la frontière NORD
 void DBB_N_BC(int j, int cas, Lattice lat, double beta, double** f_star)
 {
 	switch(cas)
@@ -585,7 +620,7 @@ void DBB_N_BC(int j, int cas, Lattice lat, double beta, double** f_star)
 		lat.f_[j][8] = beta* f_star[j][6] + (1-beta)*1./6.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
 		lat.f_[j][7] = beta* f_star[j][5] + (1-beta)*1./6.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
 		break;
-		/*case 7: //NO
+		case 7: //NO
 		lat.f_[j][4] = beta* f_star[j][2] + (1-beta)*2./3.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
 		lat.f_[j][8] = beta* f_star[j][6] + (1-beta)*1./6.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
 		lat.f_[j][7] = beta* f_star[j][5] + (1-beta)*1./6.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
@@ -594,10 +629,11 @@ void DBB_N_BC(int j, int cas, Lattice lat, double beta, double** f_star)
 		lat.f_[j][4] = beta* f_star[j][2] + (1-beta)*2./3.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
 		lat.f_[j][8] = beta* f_star[j][6] + (1-beta)*1./6.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
 		lat.f_[j][7] = beta* f_star[j][5] + (1-beta)*1./6.*(f_star[j][2] + f_star[j][5] + f_star[j][6]);
-		break;*/
+		break;
 	}
 }
 
+//Fonction de traitement des conditions aux frontières : Diffuse bounce-back (bounce-back + maxwellian diffusion) sur la frontière SUD
 void DBB_S_BC(int j, int cas, Lattice lat, double beta, double** f_star)
 {
 		switch (cas)
@@ -607,7 +643,7 @@ void DBB_S_BC(int j, int cas, Lattice lat, double beta, double** f_star)
 		lat.f_[j][5] = beta* f_star[j][7] + (1-beta)*1./6.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
 		lat.f_[j][6] = beta* f_star[j][8] + (1-beta)*1./6.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
 		break;
-		/*case 5: //SO
+		case 5: //SO
 		lat.f_[j][2] = beta* f_star[j][4] + (1-beta)*2./3.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
 		lat.f_[j][5] = beta * f_star[j][7] + (1-beta)*1./6.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
 		lat.f_[j][6] = beta* f_star[j][8] + (1-beta)*1./6.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
@@ -616,10 +652,11 @@ void DBB_S_BC(int j, int cas, Lattice lat, double beta, double** f_star)
 		lat.f_[j][2] = beta* f_star[j][4] + (1-beta)*2./3.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
 		lat.f_[j][5] = beta* f_star[j][7] + (1-beta)*1./6.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
 		lat.f_[j][6] = beta* f_star[j][8] + (1-beta)*1./6.*(f_star[j][4] + f_star[j][7] + f_star[j][8]);
-		break;*/
+		break;
 	}
 }
 
+//Fonction de traitement des conditions aux frontières : Multi-relection (Specular reflection + maxwellian diffusion) sur la frontière NORD
 void MR_N_BC(int j, int cas, Lattice lat, double sigma, double** f_star)
 {
 	switch(cas)
@@ -641,6 +678,8 @@ void MR_N_BC(int j, int cas, Lattice lat, double sigma, double** f_star)
 		break;
 	}
 }
+
+//Fonction de traitement des conditions aux frontières : Multi-relection (Specular reflection + maxwellian diffusion) sur la frontière SUD
 void MR_S_BC(int j, int cas, Lattice lat, double sigma, double** f_star)
 {
 	switch (cas)
@@ -663,6 +702,7 @@ void MR_S_BC(int j, int cas, Lattice lat, double sigma, double** f_star)
 	}
 }
 
+//Fonction de traitement des conditions d'entrée/sortie : Vitesse imposée en entrée, condition régularisée de Latt
 void regularized_BC_v_inlet(int j,int k,Lattice lat,double cs,double** v_in, int nx,double** xi,int D,double*** Qi, double* buffer, double* omega_i,int cas,double** Pi_neq,int Q, double** f_neq, int* bb, double sigma)
 {
 	if (cas ==1 || cas ==5 || cas==7)
@@ -682,6 +722,7 @@ void regularized_BC_v_inlet(int j,int k,Lattice lat,double cs,double** v_in, int
 	}
 }
 
+//Fonction de traitement des conditions d'entrée/sortie : Pression imposée en entrée, condition régularisée de Latt
 void regularized_BC_p_inlet(int j,int k,Lattice lat,double cs,double rho_in,double** xi,int D,double*** Qi, double* buffer, double* omega_i,int cas,double** Pi_neq,int Q, double** f_neq, int* bb ,double sigma)
 {
 	if (cas ==1 || cas ==5 || cas==7)
@@ -702,6 +743,7 @@ void regularized_BC_p_inlet(int j,int k,Lattice lat,double cs,double rho_in,doub
 	}
 }
 
+//Fonction de traitement des conditions d'entrée/sortie : Vitesse imposée en sortie, condition régularisée de Latt
 void regularized_BC_v_outlet(int j,int k,Lattice lat,double cs,double** v_out, int nx,double** xi,int D,double*** Qi, double* buffer, double* omega_i,int cas,double** Pi_neq,int Q, double** f_neq, int* bb, double sigma)
 {
 	lat.rho_[j] = 1./(1+v_out[j/nx][0])*(2*(lat.f_[j][1]+lat.f_[j][5]+lat.f_[j][8])+lat.f_[j][0] + lat.f_[j][2]+lat.f_[j][4]);
@@ -723,6 +765,7 @@ void regularized_BC_v_outlet(int j,int k,Lattice lat,double cs,double** v_out, i
 	}
 }
 
+//Fonction de traitement des conditions d'entrée/sortie : Pression imposée en sortie, condition régularisée de Latt
 void regularized_BC_p_outlet(int j,int k,Lattice lat,double cs,double rho_out,double** xi,int D,double*** Qi, double* buffer, double* omega_i,int cas,double** Pi_neq,int Q, double** f_neq, int* bb, double sigma)
 {
 	if (cas ==2 || cas ==6 || cas==8)

@@ -116,24 +116,17 @@ void writeVector(Domain& domain, string label, int iter, double** vector)
     }
 }
 
-void writeLattice(Domain& domain, string label, double Kn,double mu,char name, int iter, Lattice lat)
+void writeLattice(Domain& domain, string label, double Kn,double poro,char name, int iter, Lattice lat)
 {
     ostringstream oss;
 
     // Write iteration number to flux
 	//oss << name;
-	oss << "test_ellipse";
-	//oss << "DBB_Kn_0.1";
-	//oss << "DBB_Kn_0.25";
-	//oss << "DBB_Kn_0.5";
-	//oss << "DBB_Kn_0.75";
-	//oss << "DBB_Kn_1";
-	//oss << "DBB_Kn_1.5";
+	oss << "random_porous";
 	oss << "_";
-	//oss << "DBB";
     oss << iter;
-	//oss << "_poro";
-	//oss << Kn;
+	oss << "_poro";
+	oss << poro;
 	//oss << "_";
 	//oss << mu;
 	
