@@ -21,4 +21,5 @@
   void writeVector(Domain&, std::string, int, double**); // write a vector variable
   void writeLattice(Domain&, std::string, double,double, char, int, Lattice); // write a vector variable
   void writeTimeScalar(std::string,int, double**);
+  void writePorousMaterial(std::string label, double poro, double** vector, int NCylinder); //Write the diameter of random porous material for circular cylinders
 #endif

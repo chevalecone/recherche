@@ -245,9 +245,10 @@ void randomEllipse(int nx, int ny, double xmin, double xmax, double ymin, double
 //Fonction générant des cylindres circulaires jusqu'à la porosité voulue, SANS encastrement
 void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre)
 {
+	int NCylindres = 300;
 	bool* typeLat_buf = new bool[N];
-	double* tableau[50]; // Tableau qui enregistre les cylindres circulaire (abscisse, ordonnee, diametre), maximum de 50 cylindres ici
-	for (int i=0;i<50;i++)
+	double* tableau[NCylindres]; // Tableau qui enregistre les cylindres circulaire (abscisse, ordonnee, diametre), maximum de 50 cylindres ici
+	for (int i=0;i<NCylindres;i++)
 	{
 		tableau[i] = new double[3];
 		for (int j=0;j<3;j++)
@@ -262,9 +263,9 @@ void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double
 	srand(time(NULL));
 	int rnd  = rand()%borne2 + borne1 ;
 	int rnd2 = rand()%borne4 + borne3 ;
-	int MIN = 10;
-	int MAX = 40;
-	int ratio = rand()%MAX+MIN; //diametre entre 10 et 40 % de la largeur
+	int MIN = 5;
+	int MAX = 15;
+	int ratio = 5; //diametre entre 10 et 40 % de la largeur
 	double abscisse =  position[rnd][0];  // abscisse entre 10 et 90 % de la longueur
 	double ordonnee =  position[rnd2*nx][1];  // ordonnée entre 10 et 90 % de la largeur
 	srand(time(NULL));
@@ -279,7 +280,7 @@ void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double
 			{
 				buf++;
 			}
-			if(typeLat_buf[j]==true && (position[j][0]<0.03*nx || position[j][0]>0.97*nx))
+			if(typeLat_buf[j]==true && (position[j][0]<0.02*nx || position[j][0]>0.98*nx) && (position[j][1]<0.02*ny || position[j][1]>0.98*ny) )
 				{
 					buf++;
 				}
@@ -300,7 +301,7 @@ void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double
 		}
 		rnd  = rand()%borne2 + borne1 ;
 		rnd2 = rand()%borne4 + borne3 ;
-		ratio = rand()%MAX + MIN; //diametre entre 10 et 40 % de la largeur
+		ratio = 5; //diametre entre 10 et 40 % de la largeur
 		abscisse =  position[rnd][0];
 		ordonnee =  position[rnd2*nx][1];
 		diametre = (ratio)*0.01*ny;	
@@ -313,13 +314,14 @@ void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double
 		}
 	
 	}
-	for (int i=0;i<50;i++)
+	for (int i=0;i<NCylindres;i++)
 	{
 		if(tableau[i][0]!=0)
 		{
 			printf("Cylindre %d, diametre %f\n",i,tableau[i][2]);
 		}
 	}
+	writePorousMaterial("Random",poro2,tableau,NCylindres);
 }
 
 //Fonction générant des cylindres à section carrée jusqu'à la porosité voulue, SANS encastrement

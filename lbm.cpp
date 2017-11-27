@@ -42,16 +42,16 @@
 # define UW_Y 0
 # define R 1
 # define BETA 1
-# define PORO 0.75
+# define PORO 0.84
 // 0.0564 0.1128 0.1692 0.2257 0.3385 0.4514     0.6670 0.9027 1.1284 1.6926 2.2568 3.3851    4.5135 6.7703 9.0270 11.2838 16.9257 
 //0.0564 0.1692 0.3385 1.6926 3.3851
-# define KNU  0.388
+# define KNU  0.1128
 # define XMIN 0
 # define XMAX 200
 # define YMIN 0
 # define YMAX 100
 # define OUTPUT 1000
-# define PRECISION 0.00000005
+# define PRECISION 0.00000001
 
 
 int main()
