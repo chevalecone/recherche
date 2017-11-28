@@ -122,7 +122,7 @@ void writeLattice(Domain& domain, string label, double Kn,double poro,char name,
 
     // Write iteration number to flux
 	//oss << name;
-	oss << "same_diameter";
+	oss << "elliptic";
 	//oss << "_";
     // oss << iter;
 	oss << "_poro";
@@ -298,7 +298,32 @@ void writeLattice(Domain& domain, string label, double Kn,double poro,char name,
     }
 }
 
-// Write porous material to a file
+// Write porous elliptic material to a file (x-coordinate, y-coordinate, semi big axis, semi little axis, trigonometric orientation (in degrees))
+void writePorousElliptic(string label, double poro, double** vector, int NCylinder)
+{
+    ostringstream oss;
+
+    // Write iteration number to flux
+    oss << poro;
+
+    // Establish the file name
+    string filename = "output/"+label+"_"+oss.str()+".txt";
+
+    // Declare the output flux and open the file
+    ofstream file(filename.c_str(), ios::out | ios::trunc);
+    cout << "Saving file: " << filename << endl;
+
+    if(file)  // File has been opened correctly
+    {
+        for (int i=0 ; i<NCylinder ; ++i)
+        {
+            file << vector[i][0] << "\t " << vector[i][1] << "\t " << vector[i][2] << "\t "<< vector[i][3] << "\t "<< vector[i][4] << 0. << endl ;
+        }
+        file.close();  // close the file
+    }
+}
+
+// Write porous material to a file (x-coordinate, y-coordinate, diameter)
 void writePorousMaterial(string label, double poro, double** vector, int NCylinder)
 {
     ostringstream oss;
@@ -322,6 +347,7 @@ void writePorousMaterial(string label, double poro, double** vector, int NCylind
         file.close();  // close the file
     }
 }
+
 
 void writeTimeScalar(string label, int taille, double** vector)
 {

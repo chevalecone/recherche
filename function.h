@@ -44,9 +44,9 @@ void typeEllipse(double abscisse, double ordonnee, double a, double b, double or
 //Remplit typeLat pour un cylindre carré
 void typeSquare( int N, double** coin, double** position, bool* typeLat);
 double porosite (bool* typeLat, int nombre, int N);
-void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre);
-void randomSquare(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre, double** cylinder);
-void randomEllipse(int nx, int ny, double xmin, double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre);
+void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre, int* cas);
+void randomSquare(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre, double** cylinder, int* cas);
+void randomEllipse(int nx, int ny, double xmin, double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre, int* cas, double a_ellipse, double b_ellipse);
 void nettoyage(bool* typeLat, int** conn, int N, int Q);
 //**************************WALL FUNCTION******************************//
 //Donne la valeur de Ei(x)

@@ -42,15 +42,16 @@
 # define UW_Y 0
 # define R 1
 # define BETA 1
-# define PORO 0.84
+# define PORO 0.8
+# define ASPECT_RATIO 0.9
 // 0.0564 0.1128 0.1692 0.2257 0.3385 0.4514     0.6670 0.9027 1.1284 1.6926 2.2568 3.3851    4.5135 6.7703 9.0270 11.2838 16.9257 
 //0.0564 0.1692 0.3385 1.6926 3.3851
 # define KNU  0.1128
 # define XMIN 0
-# define XMAX 200
+# define XMAX 150
 # define YMIN 0
-# define YMAX 100
-# define OUTPUT 1000
+# define YMAX 75
+# define OUTPUT 500
 # define PRECISION 0.00000001
 
 
@@ -216,13 +217,29 @@ int main()
 	double** cylinder4  = new double*[4];
 	double** cylinder5  = new double*[4];	
 
+	
+	double perimeter_ellipse,area_ellipse,aspect_ratio_ellipse,hydraulic_diameter_ellipse,h_ellipse;
+	aspect_ratio_ellipse = ASPECT_RATIO;
+	double b_ellipse = 0.075*nx;
+	double a_ellipse = b_ellipse/aspect_ratio_ellipse;
+	h_ellipse = (a_ellipse-b_ellipse)*(a_ellipse-b_ellipse)/((a_ellipse+b_ellipse)*(a_ellipse+b_ellipse));
+	area_ellipse = M_PI*a_ellipse*b_ellipse;
+	perimeter_ellipse = M_PI*(a_ellipse+b_ellipse)*(1+3*h_ellipse/(10+sqrt(4-3*h_ellipse)));
+	hydraulic_diameter_ellipse = 4*area_ellipse/perimeter_ellipse;
+	printf("Paramètres du milieu poreux aléatoire de cylindres à section elliptique : \n");
+	printf("Demi grand axe : %f\n",a_ellipse);
+	printf("Demi petit axe : %f\n",b_ellipse);
+	printf("Aspect ratio : %f\n",aspect_ratio_ellipse);
+	printf("Aire : %f\n",area_ellipse);
+	printf("Périmètre : %f\n",perimeter_ellipse);
+	printf("Diamètre hydraulique : %f\n",hydraulic_diameter_ellipse);
+	
 	poro = PORO;
 	//Milieu poreux aléatoire avec des cylindres à section cylindriques
-	randomCircular(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro,nombre);
+	//randomCircular(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro,nombre, cas);
 	//Milieu poreux aléatoire avec des cylindres à section elliptique
-	//randomEllipse(nx, ny, xmin, xmax, ymin, ymax, N, position, typeLat, poro, nombre);
-	
-	
+	randomEllipse(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro,nombre,cas,a_ellipse,b_ellipse);
+
 	for (j=0;j<4;j++)
 	{
 		cylinder1[j] = new double[D];
@@ -250,8 +267,8 @@ int main()
 	//typeCircular(xmax,ymax,ratio*ymax,N,position,typeLat);
 	//typeCircular(0.5*xmax,0.5*ymax,ratio*ymax,N,position,typeLat);
 	poro = porosite(typeLat,nombre,N);
-	printf("poro : %f\n",poro);
-	printf("Diametre : %f\n",100*ratio);
+	//printf("poro : %f\n",poro);
+	//printf("Diametre : %f\n",100*ratio);
 	
 	int *pos = new int[2];
 	pos_solide(typeLat, pos,nx,ny);
@@ -329,6 +346,7 @@ int main()
 	printf("Domaine : [ %.0f %.0f ] x [ %.0f %.0f ]\n",xmin,xmax,ymin,ymax);
 	printf("Erreur d'arrêt : %f\n", error);
 	printf("Nombre de lattices : %d\n",N);  
+	printf("Porosité : %f\n",poro);
 	/*omp_set_num_threads(4);
 	 std:: cout << "  Number of processors available = " << omp_get_num_procs ( ) << "\n"<< std::endl;
 	  std ::cout << "  Number of threads =              " << omp_get_max_threads ( ) << "\n" <<std::endl;*/
@@ -500,7 +518,7 @@ while((erreur>error || erreur<-error))
         //pression_out_BC( j,cas[j],lat,xi_r,rho_out);		
 		periodic_NS_BC(j,nx,ny,cas[j],lat,f_star); 
 		//periodic_pressure_WE_BC (j, nx, ny, cas[j], lat, f_star, dRHO, sigma,cs);		
-	    //bounceback_N_BC(j,cas[j],lat,f_star);
+	   // bounceback_N_BC(j,cas[j],lat,f_star);
        // bounceback_S_BC(j,cas[j],lat,f_star);
 
 			
@@ -525,7 +543,7 @@ while((erreur>error || erreur<-error))
 			char name = FileName(Kn);
 			//vorticite(nx,ny,lat,dx,typeLat,conn);
 			ttsity = tortuosite(nx,ny,lat,dx,typeLat,conn);
-			//writeLattice(domain,"LBM",Kn,poro,name,it,lat);
+			writeLattice(domain,"LBM",Kn,poro,name,it,lat);
 			valeur2 = 0;
 			for (int j=0;j<N;j++)
 			{
