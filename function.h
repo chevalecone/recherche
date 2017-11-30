@@ -36,24 +36,32 @@ void tab_voisin(int N, int Q, bool* typeLat, int* tab_Voisin, int** conn);
 
 //Donne la position min et max des lattices solides
 void pos_solide (bool* typeLat,  int* pos, int nx, int ny);
-//CYLINDRE CARRE
-//Matrice des 4 coins de la section carrée du cylindre
-void SquareCylinder(double abscisse, double ordonnee, double diametre, double** coin);
+
+//Création solide
 void typeCircular(double abscisse, double ordonnee, double diametre, int N, double** position, bool* typeLat);
 void typeEllipse(double abscisse, double ordonnee, double a, double b, double orientation, int N, double** position, bool*typeLat);
-//Remplit typeLat pour un cylindre carré
-void typeSquare( int N, double** coin, double** position, bool* typeLat);
-double porosite (bool* typeLat, int nombre, int N);
+void typeSquare (double abscisse, double ordonnee, double L, double l, int N, double** position, bool* typeLat);
+
+
+
+//Création d'un milieu poreux aléatoires avec des cylindres aux sections définies, fonction de la porosité
 void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre, int* cas);
 void randomSquare(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre, double** cylinder, int* cas);
 void randomEllipse(int nx, int ny, double xmin, double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre, int* cas, double a_ellipse, double b_ellipse);
+
+//Calcul de porosité
+double porosite (bool* typeLat, int nombre, int N);
+
+//Fonction nettoyage permettant d'enlever les défauts numériques (optionnel)
 void nettoyage(bool* typeLat, int** conn, int N, int Q);
+
 //**************************WALL FUNCTION******************************//
 //Donne la valeur de Ei(x)
 double Ei_big(int n, double x);
 
-//**********************UTILE POUR L'EXPORTATION****************//
+//**********************UTILE POUR L'EXPORTATION (ECOULEMENT RAREFIE)****************//
 char FileName(double Kn);
 
-//**********************Caractéristiques du milieu************//
-double porosity( bool* typeLat, int N);
+//**FONCTIONS UTILES POUR L'INTERPOLATION DE FRONTIERES COMPLEXES**//
+void solid_fraction_square(int N, int Q, double** solid_fraction_interpolation, int** conn, double abscisse, double ordonnee, double diametre,bool* typeLat, double* buffer, double** position);
+

@@ -33,7 +33,7 @@
 # define DX 1
 
 # define dRHO 1.2
-# define dFi 0.000000
+# define dFi 0.00000001
 # define U_IN_x 0.0
 # define U_IN_y 0.
 # define U_OUT_x 0.
@@ -42,17 +42,17 @@
 # define UW_Y 0
 # define R 1
 # define BETA 1
-# define PORO 0.8
-# define ASPECT_RATIO 0.9
+# define PORO 0.6
+# define ASPECT_RATIO 0.65
 // 0.0564 0.1128 0.1692 0.2257 0.3385 0.4514     0.6670 0.9027 1.1284 1.6926 2.2568 3.3851    4.5135 6.7703 9.0270 11.2838 16.9257 
 //0.0564 0.1692 0.3385 1.6926 3.3851
 # define KNU  0.1128
 # define XMIN 0
-# define XMAX 150
+# define XMAX 80
 # define YMIN 0
-# define YMAX 75
-# define OUTPUT 500
-# define PRECISION 0.00000001
+# define YMAX 40
+# define OUTPUT 10
+# define PRECISION 0.00000005
 
 
 int main()
@@ -211,14 +211,13 @@ int main()
 
 //******************************CREATION DES SOLIDES******************************************//
 	double ratio = 0.3,nombre =0;
-	double** cylinder1  = new double*[4];
-	double** cylinder2  = new double*[4];
-	double** cylinder3  = new double*[4];
-	double** cylinder4  = new double*[4];
-	double** cylinder5  = new double*[4];	
-
+	double** solid_fraction_interpolation = new double*[N];
+	for (j=0;j<N;j++)
+	{
+		solid_fraction_interpolation[j] = new double[Q-1];
+	}
 	
-	double perimeter_ellipse,area_ellipse,aspect_ratio_ellipse,hydraulic_diameter_ellipse,h_ellipse;
+	/*double perimeter_ellipse,area_ellipse,aspect_ratio_ellipse,hydraulic_diameter_ellipse,h_ellipse;
 	aspect_ratio_ellipse = ASPECT_RATIO;
 	double b_ellipse = 0.075*nx;
 	double a_ellipse = b_ellipse/aspect_ratio_ellipse;
@@ -232,34 +231,20 @@ int main()
 	printf("Aspect ratio : %f\n",aspect_ratio_ellipse);
 	printf("Aire : %f\n",area_ellipse);
 	printf("Périmètre : %f\n",perimeter_ellipse);
-	printf("Diamètre hydraulique : %f\n",hydraulic_diameter_ellipse);
+	printf("Diamètre hydraulique : %f\n",hydraulic_diameter_ellipse);*/
 	
-	poro = PORO;
+	//poro = PORO;
 	//Milieu poreux aléatoire avec des cylindres à section cylindriques
 	//randomCircular(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro,nombre, cas);
 	//Milieu poreux aléatoire avec des cylindres à section elliptique
-	randomEllipse(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro,nombre,cas,a_ellipse,b_ellipse);
+	//randomEllipse(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro,nombre,cas,a_ellipse,b_ellipse);
 
-	for (j=0;j<4;j++)
-	{
-		cylinder1[j] = new double[D];
-		cylinder2[j] = new double[D];
-		cylinder3[j] = new double[D];
-		cylinder4[j] = new double[D];
-		cylinder5[j] = new double[D];
-	}
+	
+	
 	//Milieu poreux aléatoire avec des cylindres à section carré
 	//randomSquare(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro, nombre, cylinder1);
-	/*SquareCylinder(0,0,ratio*ymax,cylinder1);
-	SquareCylinder(xmax,0,ratio*ymax,cylinder2);
-	SquareCylinder(0,ymax,ratio*ymax,cylinder3);
-	SquareCylinder(xmax,ymax,ratio*ymax,cylinder4);
-	SquareCylinder(xmax/2,ymax/2,ratio*ymax,cylinder5);
-	typeSquare(N,cylinder1,position,typeLat); //Tableau de booléens pour les noeuds fluide/solide
-	typeSquare(N,cylinder2,position,typeLat);
-	typeSquare(N,cylinder3,position,typeLat);
-	typeSquare(N,cylinder4,position,typeLat);
-	typeSquare(N,cylinder5,position,typeLat);*/
+	typeSquare (0.48*xmax, 0.48*ymax, 0.188*ymax, 0.188*ymax, N, position,typeLat);
+	solid_fraction_square(N, Q, solid_fraction_interpolation,conn, 0.48*xmax, 0.48*ymax, 0.188*ymax, typeLat, buffer, position);
 	//typeEllipse(0.5*xmax, 0.5*ymax, 0.1*ymax, 0.2*ymax, 45, N, position, typeLat);
 	//typeCircular(0,0,ratio*ymax,N,position,typeLat);
 	//typeCircular(xmax,0,ratio*ymax,N,position,typeLat);
@@ -273,7 +258,7 @@ int main()
 	int *pos = new int[2];
 	pos_solide(typeLat, pos,nx,ny);
 
-	tab_voisin(N,Q,typeLat,tab_Voisin,conn);
+	//tab_voisin(N,Q,typeLat,tab_Voisin,conn);
 	/*for (j=0;j<N;j++)
 	{
 		printf("Tab_Voisin %d : %d\n",j,tab_Voisin[j]);
@@ -290,7 +275,8 @@ int main()
 	double r = temp2[0];
 	double beta = temp2[0];
 	double sigma1 = temp2[0];
-	
+	char name = FileName(Kn);
+
 //*************************SLIP VELOCITY***************************//
 
 	//Coefficients des vitesses de glissements considérés
@@ -347,6 +333,8 @@ int main()
 	printf("Erreur d'arrêt : %f\n", error);
 	printf("Nombre de lattices : %d\n",N);  
 	printf("Porosité : %f\n",poro);
+	//printf("Diamètre hydraulique : %f\n",hydraulic_diameter_ellipse);
+	//printf("Aspect ratio : %f\n",aspect_ratio_ellipse);
 	/*omp_set_num_threads(4);
 	 std:: cout << "  Number of processors available = " << omp_get_num_procs ( ) << "\n"<< std::endl;
 	  std ::cout << "  Number of threads =              " << omp_get_max_threads ( ) << "\n" <<std::endl;*/
@@ -445,7 +433,14 @@ for (int i=0;i<N;i++)
 						
 //*************************INITIALISATION DU DOMAINE******************************************//
 initialisation_domain (N,nx,ny,lat,rho_in,rho_out,v_in,v_out,Uw, D,Q,xi,sigma, omega_i, f_star, tau, position);
-
+for (j=0;j<N;j++)
+{
+	if(typeLat[j])
+	{
+		lat.rho_[j] = 0.5;
+	}
+}
+writeLattice(domain,"LBM",Kn,poro,name,0,lat);
 //******************************BOUCLE TEMPORELLE******************************************//
 while((erreur>error || erreur<-error))	
 {		
@@ -555,7 +550,7 @@ while((erreur>error || erreur<-error))
 		}
 		it++;
 }
-	char name = FileName(Kn);
+	//char name = FileName(Kn);
 	writeLattice(domain,"LBM",Kn,poro,name,it,lat);
 	time_t timer2 = time(NULL);
 	printf("Temps d'exécution : %d s\n",(int)(timer2-timer1));

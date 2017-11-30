@@ -122,7 +122,7 @@ void writeLattice(Domain& domain, string label, double Kn,double poro,char name,
 
     // Write iteration number to flux
 	//oss << name;
-	oss << "elliptic";
+	oss << "same_diameter_20";
 	//oss << "_";
     // oss << iter;
 	oss << "_poro";
