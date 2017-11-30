@@ -1,4 +1,4 @@
-SOURCES= lbm.cpp domain.cpp solutionExporterEulerian.cpp lattice.cpp function.cpp geometry.cpp boundaryc.cpp compute_quantities.cpp relaxation_time.cpp rarefied_models.cpp slip_velocity.cpp wall_function.cpp initialisation.cpp
+SOURCES= lbm.cpp domain.cpp solutionExporterEulerian.cpp lattice.cpp function.cpp geometry.cpp boundaryc.cpp compute_quantities.cpp relaxation_time.cpp rarefied_models.cpp slip_velocity.cpp wall_function.cpp initialisation.cpp solid_interpolation_method.cpp
 
 OBJECTS=$(SOURCES:.cpp=.o)
 
@@ -28,7 +28,7 @@ clean:
 	rm $(EXECUTABLE)
 	rm $(OBJECTS)
 
-omp: lbm.o  domain.o solutionExporterEulerian.o lattice.o function.o geometry.o boundaryc.o compute_quantities.o relaxation_time.o rarefied_models.o slip_velocity.o wall_function.o initialisation.o
-	$(CC) $(CFLAGS) -o lbm lbm.o  domain.o solutionExporterEulerian.o lattice.o function.o geometry.o boundaryc.o compute_quantities.o relaxation_time.o rarefied_models.o slip_velocity.o wall_function.o initialisation.o $(LIB_PATHS) $(INCLUDE_PATHS) $(LIBS) 
+omp: lbm.o  domain.o solutionExporterEulerian.o lattice.o function.o geometry.o boundaryc.o compute_quantities.o relaxation_time.o rarefied_models.o slip_velocity.o wall_function.o initialisation.o solid_interpolation_method.o
+	$(CC) $(CFLAGS) -o lbm lbm.o  domain.o solutionExporterEulerian.o lattice.o function.o geometry.o boundaryc.o compute_quantities.o relaxation_time.o rarefied_models.o slip_velocity.o wall_function.o initialisation.o o solid_interpolation_method.o$(LIB_PATHS) $(INCLUDE_PATHS) $(LIBS) 
 
 

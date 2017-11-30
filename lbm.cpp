@@ -25,6 +25,7 @@
 #include "slip_velocity.h"
 #include "wall_function.h"
 #include "initialisation.h"
+#include "solid_interpolation_method.h"
 # define M_PI  3.14159265358979323846
 
 //Variables de la simulation
@@ -32,7 +33,7 @@
 # define MU 1
 # define DX 1
 
-# define dRHO 1.2
+# define dRHO 1.1
 # define dFi 0.00000001
 # define U_IN_x 0.0
 # define U_IN_y 0.
@@ -48,10 +49,10 @@
 //0.0564 0.1692 0.3385 1.6926 3.3851
 # define KNU  0.1128
 # define XMIN 0
-# define XMAX 80
+# define XMAX 100
 # define YMIN 0
-# define YMAX 40
-# define OUTPUT 10
+# define YMAX 50
+# define OUTPUT 1000
 # define PRECISION 0.00000005
 
 
@@ -243,10 +244,11 @@ int main()
 	
 	//Milieu poreux aléatoire avec des cylindres à section carré
 	//randomSquare(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro, nombre, cylinder1);
-	typeSquare (0.48*xmax, 0.48*ymax, 0.188*ymax, 0.188*ymax, N, position,typeLat);
-	solid_fraction_square(N, Q, solid_fraction_interpolation,conn, 0.48*xmax, 0.48*ymax, 0.188*ymax, typeLat, buffer, position);
+	//typeSquare (0.48*xmax, 0.48*ymax, 0.188*ymax, 0.188*ymax, N, position,typeLat);
+	//solid_fraction_square(N, Q, solid_fraction_interpolation,conn, 0.48*xmax, 0.48*ymax, 0.188*ymax, typeLat, buffer, position);
 	//typeEllipse(0.5*xmax, 0.5*ymax, 0.1*ymax, 0.2*ymax, 45, N, position, typeLat);
-	//typeCircular(0,0,ratio*ymax,N,position,typeLat);
+	typeCircular(0.5*xmax,0.5*ymax,0.2*ymax,N,position,typeLat);	
+	solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, 0.5*xmax, 0.5*ymax, 0.2*ymax, typeLat, position);
 	//typeCircular(xmax,0,ratio*ymax,N,position,typeLat);
 	//typeCircular(0,ymax,ratio*ymax,N,position,typeLat);
 	//typeCircular(xmax,ymax,ratio*ymax,N,position,typeLat);
@@ -509,6 +511,7 @@ while((erreur>error || erreur<-error))
 		//CBBSR_N_BC(j,cas[j],lat,r,f_star);
 		//CBBSR_S_BC(j,cas[j],lat,r,f_star);  
 		bounceback_solid_BC(nx,j,lat,f_star,conn,typeLat,bb,nombre,pos,cas[j]);
+		//linear_interpolation_method(j,Q,lat,f_star,conn,typeLat,bb,solid_fraction_interpolation);
 		//pression_in_BC( j,cas[j],lat,xi_r,rho_in);
         //pression_out_BC( j,cas[j],lat,xi_r,rho_out);		
 		periodic_NS_BC(j,nx,ny,cas[j],lat,f_star); 

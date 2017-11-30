@@ -503,6 +503,61 @@ void connectivite(int nx,int ny,  int Q, int** conn)
 	}
 }
 
+//Fonction permettant de donner le numéro des lattices voisines au rang 2 (voisins des voisins) en fonction du schéma D2Q9
+void connectivite_v2(int nx,int ny,  int Q, int** conn, int** conn2)
+{
+	for ( int j=0;j<nx*ny;j++)
+	{
+		conn2[j]= new int[Q];
+		conn2[j][0] = j;
+		conn2[j][1] = j+2; //Voisin Est
+		conn2[j][2] = j+2*nx; //Voisin Nord
+		conn2[j][3] = j-2; //Voisin Ouest
+		conn2[j][4] = j-2*nx; //Voisin Sud
+		conn2[j][5] = j+2*(nx+1); //Voisin Nord-Est
+		conn2[j][6] = j+2*(nx-1); //Voisin Nord-Ouest
+		conn2[j][7] = j-2*(nx+1); //Voisin Sud-Ouest
+		conn2[j][8] = j-2*(nx-1); //Voisin Sud-Est
+	}
+	//Puis, on réajuste pour les lattices aux frontières, dans certaines directions elles n'ont pas de voisines
+	//Le tableau connectivite sert pour la propagation, le traitement des conditions aux frontières etc...
+	for ( int j=0;j<nx*ny;j++)
+	{
+		if((j%nx)==0) //Si la lattice est sur la frontière Ouest, son voisin de rang 2 est lui même (population opposée)
+		{
+			conn2[j][6] = j;
+			conn2[j][3] = j;
+			conn2[j][7] = j;
+		}
+		if((j%nx)==nx-1) //Si la lattice est sur la frontière Est, son voisin de rang 2 est lui même (population opposée)
+		{
+			conn2[j][1] = j;
+			conn2[j][5] = j;
+			conn2[j][8] = j;
+		}
+		if(j<nx) //Si la lattice est sur la frontière Sud, son voisin de rang 2 est lui même (population opposée)
+		{ 
+			conn2[j][4] = j;
+			conn2[j][7] = j;
+			conn2[j][8] = j;
+		}
+		if(j>nx*ny-nx) //Si la lattice est sur la frontière Nord, son voisin de rang 2 est lui même (population opposée)
+		{
+			conn2[j][2] = j;
+			conn2[j][5] = j;
+			conn2[j][6] = j;
+		}
+		for ( int k=0;k<Q;k++)
+		{
+			if (conn[j][k]<0 || conn[j][k]>=nx*ny) //Si le voisin d'une lattice dépasse la numérotation du domaine, alors ce voisin est situé en dehors du domaine
+			{
+				conn[j][k] = -1;
+			}
+		}
+	}
+}
+
+
 //Fonction donnant les positions min et max des lattices solides (pour réduire les boucles où ont lieu des traitements sur des parois solides)
 void pos_solide (bool* typeLat,  int* pos, int nx, int ny) 
 {
@@ -892,85 +947,6 @@ void tab_voisin(int N, int Q, int* tab_Voisin, int** conn, double** position, bo
 		if(typeLat[j])
 		{
 			tab_Voisin[j] = 511;
-		}
-	}
-}
-
-void solid_fraction_square(int N, int Q, double** solid_fraction_interpolation, int** conn, double abscisse, double ordonnee, double diametre, bool* typeLat, double* buffer, double** position)
-{
-	double dx,dy, dx2,dy2,d_lat;
-	double signe_x, signe_y = 0;
-	double* plan_N = new double[2];
-	double* plan_S = new double[2];
-	double* plan_E = new double[2];
-	double* plan_W = new double[2];
-	double* XW1 = new double[2];
-	double* XW2 = new double[2];
-	plan_N[0] = 0;
-	plan_N[1] = ordonnee + 0.5*diametre;	
-	plan_S[0] = 0;
-	plan_S[1] = ordonnee - 0.5*diametre;		
-	plan_E[0] = abscisse + 0.5*diametre;
-	plan_E[1] = 0;
-	plan_W[0] = abscisse - 0.5*diametre;
-	plan_W[1] = 0;	
-	for (int j =0;j<N;j++)
-	{
-		for (int k=0;k<Q-1;k++)
-		{
-			if (typeLat[j] && (!typeLat[conn[j][k]]))
-			{
-				dx = position[j][0]-abscisse;
-				dx2 = position[conn[j][k]][0]-abscisse;
-				dy = position[j][1]-ordonnee;				
-				dy2 = position[conn[j][k]][1]-ordonnee;
-				d_lat = sqrt((position[j][0]-position[conn[j][k]][0])*(position[j][0]-position[conn[j][k]][0])+(position[j][1]-position[conn[j][k]][1])*(position[j][1]-position[conn[j][k]][1]));
-				//Cas particuliers : frontière droites
-				if(k==1 || k==3)//W-E
-				{
-					buffer[3] = (fabs(dx2)-0.5*diametre)*1./d_lat;
-				}
-				else if (k==2 || k ==4)//N-S
-				{
-					buffer[3] = (fabs(dy2)-0.5*diametre)*1./d_lat;
-				}
-				else
-				{
-				buffer[0] = 45*M_PI/180; //theta en degrés
-				
-				if(k==5)
-				{
-					signe_x = 1;
-					signe_y = 1;
-				}
-				else if(k==6)
-				{
-					signe_x = -1;
-					signe_y = 1;
-				}
-				else if(k==7)
-				{
-					signe_x = -1;
-					signe_y = -1;
-				}
-				else if(k==8)
-				{
-					signe_x = 1;
-					signe_y = -1;
-				}
-				XW1[0] = abscisse + 0.5*diametre*signe_x;
-				XW1[1] = position[j][1] + signe_y*fabs((XW1[0]-dx))*cos(buffer[0]);
-
-				XW2[1] = ordonnee + 0.5*diametre*signe_y;
-				XW2[0] = position[j][0] + signe_x*fabs(XW2[1]-dy) * cos(buffer[0]);				
-			    printf("Lattice %d, voisin %d, XB : %f %f, XF = %f %f,  %f %f , %f %f\n",j,k,position[j][0], position[j][1], position[conn[j][k]][0],position[conn[j][k]][1],XW1[0],XW1[1],XW2[0],XW2[1]);
-				buffer[3] = (sqrt((XW1[0]-position[conn[j][k]][0])*(XW1[0]-position[conn[j][k]][0])+(XW1[1]-position[conn[j][k]][1])*(XW1[1]-position[conn[j][k]][1])))/d_lat;
-				buffer[4] = (sqrt((XW2[0]-position[conn[j][k]][0])*(XW2[0]-position[conn[j][k]][0])+(XW2[1]-position[conn[j][k]][1])*(XW2[1]-position[conn[j][k]][1])))/d_lat;
-				
-				}
-				printf("Lattice %d, voisin %d, fraction solide : %f ou %f\n",j,k,buffer[3], buffer[4]);
-			}
-
 		}
 	}
 }

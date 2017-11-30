@@ -25,6 +25,7 @@ void fi_bar(double* omega_i, double***Qi, double** Pi_neq, double cs, int j, int
 void localisation(int nx, int ny, double dx, double** position);
 //Matrice de connectivité
 void connectivite(int nx,int ny,  int Q, int** conn);
+void connectivite_v2(int nx,int ny,  int Q, int** conn, int** conn2);
 //Donne les directions opposées aux populations considérés (utile pour le HWBB)
 void bounceback_neighbour( int* bb,  int Q);
 //Cas pour les frontières du domaine et/ou solides
@@ -62,6 +63,4 @@ double Ei_big(int n, double x);
 //**********************UTILE POUR L'EXPORTATION (ECOULEMENT RAREFIE)****************//
 char FileName(double Kn);
 
-//**FONCTIONS UTILES POUR L'INTERPOLATION DE FRONTIERES COMPLEXES**//
-void solid_fraction_square(int N, int Q, double** solid_fraction_interpolation, int** conn, double abscisse, double ordonnee, double diametre,bool* typeLat, double* buffer, double** position);
 
