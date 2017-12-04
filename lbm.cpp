@@ -30,10 +30,10 @@
 
 //Variables de la simulation
 # define RHO 1
-# define MU 1
+# define MU 0.5
 # define DX 1
 
-# define dRHO 1.1
+# define dRHO 1.2
 # define dFi 0.00000001
 # define U_IN_x 0.0
 # define U_IN_y 0.
@@ -49,10 +49,10 @@
 //0.0564 0.1692 0.3385 1.6926 3.3851
 # define KNU  0.1128
 # define XMIN 0
-# define XMAX 100
+# define XMAX 20
 # define YMIN 0
-# define YMAX 50
-# define OUTPUT 1000
+# define YMAX 20
+# define OUTPUT 100
 # define PRECISION 0.00000005
 
 
@@ -119,6 +119,7 @@ int main()
 	int i,j,k,l,m;
 	double* buffer = new double[10];
 	double* buffer2 = new double[10];
+	double* tab_marquage = new double[N];
 	double* test = new double[5];
 	double** rank = new double*[ny];
 	int* tab_Voisin = new int[N];
@@ -135,6 +136,7 @@ int main()
 	double **position = new double*[N]; //Matrice des coordonnées de chaque milieu de lattice
 	int **conn = new int*[N]; //Matrice de connectivité des lattices
 	bool* typeLat = new bool[N]; //booléen pour déterminer si le noeud est solide (true) ou fluide (false)
+	bool* typeLat2 = new bool[N];
 	double** S = new double*[N];
 	double **xi = new double*[Q];//Tableau des vecteurs des vitesses du modèle
 	double** Pi_neq = new double*[D];
@@ -161,6 +163,7 @@ int main()
 	}
 	for (j=0;j<N;j++)
 	{
+		tab_marquage[j] = 0;
 		f_star[j] = new double[Q];
 		f_neq[j] = new double[Q];
 		typeLat[j] = false; //Initialement, tous les noeuds sont fluides
@@ -211,7 +214,7 @@ int main()
 	}
 
 //******************************CREATION DES SOLIDES******************************************//
-	double ratio = 0.3,nombre =0;
+	double ratio = 0.6,nombre =0;
 	double** solid_fraction_interpolation = new double*[N];
 	for (j=0;j<N;j++)
 	{
@@ -247,12 +250,25 @@ int main()
 	//typeSquare (0.48*xmax, 0.48*ymax, 0.188*ymax, 0.188*ymax, N, position,typeLat);
 	//solid_fraction_square(N, Q, solid_fraction_interpolation,conn, 0.48*xmax, 0.48*ymax, 0.188*ymax, typeLat, buffer, position);
 	//typeEllipse(0.5*xmax, 0.5*ymax, 0.1*ymax, 0.2*ymax, 45, N, position, typeLat);
-	typeCircular(0.5*xmax,0.5*ymax,0.2*ymax,N,position,typeLat);	
-	solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, 0.5*xmax, 0.5*ymax, 0.2*ymax, typeLat, position);
-	//typeCircular(xmax,0,ratio*ymax,N,position,typeLat);
-	//typeCircular(0,ymax,ratio*ymax,N,position,typeLat);
-	//typeCircular(xmax,ymax,ratio*ymax,N,position,typeLat);
-	//typeCircular(0.5*xmax,0.5*ymax,ratio*ymax,N,position,typeLat);
+	//typeCircular(0,0,ratio*ymax,N,position,typeLat, typeLat2);	
+	//solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, 0,0, ratio*ymax, typeLat2, position);
+	//typeCircular(xmax,0,ratio*ymax,N,position,typeLat,typeLat2);
+	//solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, xmax, 0, ratio*ymax, typeLat2, position);
+	//typeCircular(0,ymax,ratio*ymax,N,position,typeLat,typeLat2);
+	//solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, 0, ymax, ratio*ymax, typeLat2, position);
+	//typeCircular(xmax,ymax,ratio*ymax,N,position,typeLat,typeLat2);
+	//solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, xmax,ymax, ratio*ymax, typeLat2, position);
+	typeCircular(0.5*xmax,0.5*ymax,ratio*ymax,N,position,typeLat,typeLat2);
+	solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, 0.5*xmax, 0.5*ymax, ratio*ymax, typeLat2, position);
+
+
+	for (j=0;j<N;j++)
+	{
+		for (k=0;k<Q;k++)
+		{
+				lat.q_[j][k] =solid_fraction_interpolation[j][k];
+		} 
+	}
 	poro = porosite(typeLat,nombre,N);
 	//printf("poro : %f\n",poro);
 	//printf("Diametre : %f\n",100*ratio);
@@ -442,7 +458,7 @@ for (j=0;j<N;j++)
 		lat.rho_[j] = 0.5;
 	}
 }
-writeLattice(domain,"LBM",Kn,poro,name,0,lat);
+//writeLattice(domain,"LBM",Kn,poro,name,0,lat);
 //******************************BOUCLE TEMPORELLE******************************************//
 while((erreur>error || erreur<-error))	
 {		
@@ -511,15 +527,15 @@ while((erreur>error || erreur<-error))
 		//CBBSR_N_BC(j,cas[j],lat,r,f_star);
 		//CBBSR_S_BC(j,cas[j],lat,r,f_star);  
 		bounceback_solid_BC(nx,j,lat,f_star,conn,typeLat,bb,nombre,pos,cas[j]);
-		//linear_interpolation_method(j,Q,lat,f_star,conn,typeLat,bb,solid_fraction_interpolation);
+		//linear_interpolation_method(j,Q,lat,f_star,conn,typeLat,bb,solid_fraction_interpolation, tab_marquage, cas[j]);
+		//quadratic_interpolation_method(j,Q,lat,f_star,conn,typeLat,bb,solid_fraction_interpolation, tab_marquage, cas[j]);
 		//pression_in_BC( j,cas[j],lat,xi_r,rho_in);
         //pression_out_BC( j,cas[j],lat,xi_r,rho_out);		
 		periodic_NS_BC(j,nx,ny,cas[j],lat,f_star); 
 		//periodic_pressure_WE_BC (j, nx, ny, cas[j], lat, f_star, dRHO, sigma,cs);		
 	   // bounceback_N_BC(j,cas[j],lat,f_star);
        // bounceback_S_BC(j,cas[j],lat,f_star);
-
-			
+	   
 		propagation(j,lat,f_star, typeLat, conn, bb,Q);
 		if(!typeLat[j])
 		{
@@ -539,9 +555,9 @@ while((erreur>error || erreur<-error))
         if (it%outputFrequency==0 && it!=0) 
 		{
 			char name = FileName(Kn);
-			//vorticite(nx,ny,lat,dx,typeLat,conn);
+			vorticite(nx,ny,lat,dx,typeLat,conn);
 			ttsity = tortuosite(nx,ny,lat,dx,typeLat,conn);
-			writeLattice(domain,"LBM",Kn,poro,name,it,lat);
+			//writeLattice(domain,"LBM",Kn,poro,name,it,lat);
 			valeur2 = 0;
 			for (int j=0;j<N;j++)
 			{
@@ -554,6 +570,8 @@ while((erreur>error || erreur<-error))
 		it++;
 }
 	//char name = FileName(Kn);
+	writeScalar(domain, "marquage", it, tab_marquage);
+	
 	writeLattice(domain,"LBM",Kn,poro,name,it,lat);
 	time_t timer2 = time(NULL);
 	printf("Temps d'exécution : %d s\n",(int)(timer2-timer1));

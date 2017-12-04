@@ -9,6 +9,7 @@ Lattice::Lattice(int n,  int Q,  int D)
     vorticity_ = new double*[n];
     m_ = new double*[n];
     m0_ = new double*[n];
+	q_ = new double*[n];
 
     for (int i=0 ; i < n ; i ++)
     {
@@ -18,5 +19,6 @@ Lattice::Lattice(int n,  int Q,  int D)
         u_[i] = new double[D];
         m_[i] = new double[Q];
         m0_[i] = new double[Q];
+		q_[i] = new double[Q];
     }
 }

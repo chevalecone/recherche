@@ -123,20 +123,25 @@ void typeSquare (double abscisse, double ordonnee, double L, double l, int N, do
 	}
 }
 //Création d'un cylindre circulaire en fonction des coordonnées de son centre et de son diamètre
-void typeCircular(double abscisse, double ordonnee, double diametre, int N, double** position, bool* typeLat)
+void typeCircular(double abscisse, double ordonnee, double diametre, int N, double** position, bool* typeLat, bool* typeLat_buf)
 {
+	for (int i=0;i<N;i++)
+	{
+		typeLat_buf[i] = 0;
+	}
 	for (int i=0;i<N;i++)
 	{
 		// si (xm-xo)² + (ym-yo)² <= D²/4, alors la lattice fait partie du cylindre, il est solide
 		if(((position[i][0]-abscisse)*(position[i][0]-abscisse)+(position[i][1]-ordonnee)*(position[i][1]-ordonnee))<=diametre*diametre*0.25)
 		{
 			typeLat[i] = true;
+			typeLat_buf[i] = true;
 		}
 	}
 }
 
 //Création d'une ellipse en fonction de son centre, les longueurs des demi-grands axes et de son orientation en degrés
-void typeEllipse(double abscisse, double ordonnee, double a, double b, double orientation, int N, double** position, bool*typeLat)
+void typeEllipse(double abscisse, double ordonnee, double a, double b, double orientation, int N, double** position, bool*typeLat, bool* typeLat_buf)
 {
 	double* pos_f = new double[2]; //position du premier foyer
 	double* pos_f_p = new double[2]; //position du second foyer
@@ -148,18 +153,23 @@ void typeEllipse(double abscisse, double ordonnee, double a, double b, double or
 	pos_f_p[1] = ordonnee - sin(orientation*M_PI/180)*c; 
 	for (int i = 0; i<N;i++)
 	{
+		typeLat_buf[i] = true;
+	}
+	for (int i = 0; i<N;i++)
+	{
 		d_f = sqrt((position[i][0]-pos_f[0])*(position[i][0]-pos_f[0])+(position[i][1]-pos_f[1])*(position[i][1]-pos_f[1]));
 		d_fp = sqrt((position[i][0]-pos_f_p[0])*(position[i][0]-pos_f_p[0])+(position[i][1]-pos_f_p[1])*(position[i][1]-pos_f_p[1]));
 		//Condition pour qu'une lattice soit dans une ellipse : (d(MF) + d(MF'))<2a
 		if ((d_f+d_fp)<=2*std::max(a,b)) 
 		{
 			typeLat[i] = true;
+			typeLat_buf[i]= true;
 		}
 	}
 }
 
 //Fonction générant au hasard des ellipses jusqu'à la porosité considérée, SANS encastrement
-void randomEllipse(int nx, int ny, double xmin, double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre, int* cas, double a_ellipse, double b_ellipse)
+void randomEllipse(int nx, int ny, double xmin, double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, bool* typeLat_buf2, double poro, double nombre, int* cas, double a_ellipse, double b_ellipse)
 {
 	int NCylindres = 100;
 	bool* typeLat_buf = new bool[N];
@@ -190,7 +200,7 @@ void randomEllipse(int nx, int ny, double xmin, double xmax, double ymin, double
 	while (poro2<=0.99*poro || poro2>=1.01*poro)
 	{
 
-		typeEllipse(abscisse,ordonnee,a,b,orientation, N,position,typeLat_buf);
+		typeEllipse(abscisse,ordonnee,a,b,orientation, N,position,typeLat_buf,typeLat_buf2);
 		
 		for(int j=0;j<N;j++)
 		{
@@ -251,7 +261,7 @@ void randomEllipse(int nx, int ny, double xmin, double xmax, double ymin, double
 }
 
 //Fonction générant des cylindres circulaires jusqu'à la porosité voulue, SANS encastrement
-void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre, int* cas)
+void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, bool* typeLat_buf2, double poro, double nombre, int* cas)
 {
 	int NCylindres = 500;
 	bool* typeLat_buf = new bool[N];
@@ -289,7 +299,7 @@ void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double
 	// 2° contrainte : on regarde si les lattices solides créées sont situées au niveau des frontières
 	while (poro2<=0.99*poro || poro2>=1.01*poro)
 	{
-		typeCircular(abscisse,ordonnee,diametre,N,position,typeLat_buf); // Création nouveau cylindre
+		typeCircular(abscisse,ordonnee,diametre,N,position,typeLat_buf, typeLat_buf2); // Création nouveau cylindre
 		for(int j=0;j<N;j++)
 		{
 			//Contrainte n°1
@@ -950,6 +960,7 @@ void tab_voisin(int N, int Q, int* tab_Voisin, int** conn, double** position, bo
 		}
 	}
 }
+
 
 
 

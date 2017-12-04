@@ -13,6 +13,7 @@ public:
     double **vorticity_;
     double **m_;
     double **m0_;
+	double** q_;
 };
 
 #endif // LATTICE_H

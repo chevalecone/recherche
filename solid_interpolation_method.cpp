@@ -111,51 +111,200 @@ void solid_fraction_square(int N, int Q, double** solid_fraction_interpolation, 
 	}
 }
 
-
+//Loi des sinus
 void solid_fraction_circular(int N, int Q, double** solid_fraction_interpolation, int** conn, double abscisse, double ordonnee, double diametre, bool* typeLat, double** position)
 {
-	double xC = abscisse, yC = ordonnee,xB,yB,xW,yW,xF,yF,lon,R1,R2, R = 0.5*diametre;
+	double xC = abscisse, yC = ordonnee,xB,yB,xW,yW,xF,yF,lon,R1,R2, R = 0.5*diametre,x, D1, gamma;
+	double cT1, cT2, sT1, sT2, T1,T2;
 	double* angle2 = new double[Q];
 	for (int j =0;j<N;j++)
 	{
 		for (int k=1;k<Q;k++)
 		{
-			if (typeLat[j] && (!typeLat[conn[j][k]]))
+			if ( conn[j][k]!=-1 && typeLat[j] && (!typeLat[conn[j][k]]))
 			{
 					xB = position[j][0];
 					yB = position[j][1];
 					xF = position[conn[j][k]][0];
 					yF = position[conn[j][k]][1];
+					lon = sqrt((xF-xB)*(xF-xB)+(yF-yB)*(yF-yB));
 					R1 = sqrt((xB-xC)*(xB-xC)+(yB-yC)*(yB-yC));
 					R2 = sqrt((xF-xC)*(xF-xC)+(yF-yC)*(yF-yC));
-					lon = sqrt((xF-xB)*(xF-xB)+(yF-yB)*(yF-yB));
-					solid_fraction_interpolation[j][k] = (R2-R)/lon;
-					printf("R2-R1 : %f\n",lon);
-					printf("Lattice %d, voisin %d, fraction solide %f\n",j,k,solid_fraction_interpolation[j][k]);
+					cT1 = (xB-xC)/R1;
+					cT2 = (xF-xC)/R2;
+					T1_1 = acos(cT1);
+					sT1 = (yB-yC)/R1;
+					T1_2 = asin(sT1);
+
+					
+					if(cT1>0 && sT1>0)
+					{
+						T1 = acos(cT1);
+					}
+					else if(cT1>0 && sT1<0)
+					{
+						T1 = asin(sT1);
+					}
+					else if(cT1<0 && sT1<0)
+					{
+						T1 = -M_PI-asin(sT1);
+					}
+					else if(cT1<0 && sT1>0)
+					{
+						T1 = acos(cT1);
+					}
+					else if(cT1 ==1 && sT1 ==0)
+					{
+						T1 = 0;
+					}
+					else if(cT1 ==-1 && sT1 ==0)
+					{
+						T1 = M_PI;
+					}
+					else if(cT1 ==0 && sT1 ==1)
+					{
+						T1 = M_PI/2;
+					}
+					else if(cT1 ==0 && sT1 ==-1)
+					{
+						T1 = 3*M_PI/2;
+					}
+					
+					if(k==1)
+					{
+						T2 = 0;
+					}
+					else if(k==2)
+					{
+						T2 = M_PI/2;
+					}
+					else if(k==3)
+					{
+						T2 = M_PI;
+					}
+					else if(k==4)
+					{
+						T2 = 3*M_PI/2;
+					}
+					else if(k==5)
+					{
+						T2 = M_PI/4;
+					}
+					else if(k==6)
+					{
+						T2 =3*M_PI/4; 
+					}
+					else if(k==7)
+					{
+						T2 = -3*M_PI/4;
+					}
+					else if(k==8)
+					{
+						T2 = -M_PI/4;
+					}
+					gamma = cos(T1)*cos(T2)+sin(T1)*sin(T2);
+					x = -gamma*R1+sqrt(gamma*gamma*R1*R1-(R1*R1-R*R));
+				
+					xW = R1*cos(T1)+x*cos(T2);
+					yW = R1*sin(T1)+x*sin(T2);
+					solid_fraction_interpolation[j][k] = (lon-x)/lon;
+					
+			}
+		}
+	}
+	
+}
+
+void linear_interpolation_method( int j, int Q, Lattice lat, double** f_star, int**conn, bool*  typeLat,  int* bb,double** solid_fraction_interpolation, double* tab_marquage, int cas)
+{
+	double q;
+	int xf1, xf2,xb;
+	if(cas>4)
+	{
+		for (int k=0;k<Q;k++)
+		{
+			//Si la lattice j est fluide, et le voisin est solide
+			if ( conn[j][k]!=-1 && !typeLat[j] && typeLat[conn[j][k]])
+			{
+				tab_marquage[j] = 1;
+				xf1 = j;
+				xf2 = conn[j][bb[k]];
+				xb = conn[j][k];
+				q = solid_fraction_interpolation[xb][bb[k]];
+				if(q<0.5)
+				{
+					lat.f_[xf1][bb[k]] = (1-2*q)*f_star[xf2][k]+2*q*f_star[xf1][k];
+				}
+				else
+				{
+					lat.f_[xf1][bb[k]] = (1-1./2*q)*f_star[xf1][bb[k]]+1./2*q*f_star[xf1][k];
+				}
+			
 			}
 		}
 	}
 }
 
-void linear_interpolation_method( int j, int Q, Lattice lat, double** f_star, int**conn, bool*  typeLat,  int* bb,double** solid_fraction_interpolation)
+void quadratic_interpolation_method( int j, int Q, Lattice lat, double** f_star, int**conn, bool*  typeLat,  int* bb,double** solid_fraction_interpolation, double* tab_marquage, int cas)
 {
 	double q;
-	for (int k=0;k<Q;k++)
+	int xf1, xf2,xf3,xb;
+	if(cas>4)
 	{
-		//Si la lattice j est fluide, et le voisin est solide
-		if ( conn[j][k]!=-1 && !typeLat[j] && typeLat[conn[j][k]])
+		for (int k=0;k<Q;k++)
 		{
-			q = solid_fraction_interpolation[conn[j][k]][bb[k]];
-			if(q<0.5)
+			//Si la lattice j est fluide, et le voisin est solide
+			if ( conn[j][k]!=-1 && !typeLat[j] && typeLat[conn[j][k]])
 			{
-				lat.f_[j][bb[k]] = (1-2*q)*f_star[conn[j][bb[k]]][bb[k]]+2*q*f_star[j][k];
-			}
-			else
-			{
-				lat.f_[j][bb[k]] = (1-1./2*q)*f_star[j][bb[k]]+1./2*q*f_star[j][k];
-			}
+				tab_marquage[j] = 1;
+				xf1 = j;
+				xf2 = conn[j][bb[k]];
+				xf3 = conn[xf2][bb[k]];
+				xb = conn[j][k];
+				q = solid_fraction_interpolation[xb][bb[k]];
+				if(q<0.5)
+				{
+					lat.f_[xf1][bb[k]] = q*(1+2*q)*f_star[xf1][k]+(1-4*q*q)*f_star[xf2][k]-q*(1-2*q)*f_star[xf3][k];
+				}
+				else
+				{
+					lat.f_[xf1][bb[k]] = (2*q-1)/q*f_star[xf1][bb[k]]+1/(q*(2*q+1))*f_star[xf1][k]+(1-2*q)/(2*q+1)*f_star[xf2][bb[k]];
+				}
 			
+			}
 		}
 	}
-	
 }
+
+/*void multireflection_interpolation_method( int j, int Q, Lattice lat, double** f_star, int**conn, bool*  typeLat,  int* bb,double** solid_fraction_interpolation, double* tab_marquage, int cas)
+{
+	double q;
+	int xf1, xf2,xf3,xb,k1,k2,k3,k4,k5;
+	if(cas>4)
+	{
+		for (int k=0;k<Q;k++)
+		{
+			//Si la lattice j est fluide, et le voisin est solide
+			if ( conn[j][k]!=-1 && !typeLat[j] && typeLat[conn[j][k]])
+			{
+				tab_marquage[j] = 1;
+				xf1 = j;
+				xf2 = conn[j][bb[k]];
+				xf3 = conn[xf2][bb[k]];
+				xb = conn[j][k];
+				q = solid_fraction_interpolation[xb][bb[k]];
+				k1 = (1-2*q-2*q*q)/((1+q)*(1+q));
+				k2 = q*q/((1+q)*(1+q));
+				k3 = (1-2*q-2*				if(q<0.5)
+				{
+					lat.f_[xf1][bb[k]] = q*(1+2*q)*f_star[xf1][k]+(1-4*q*q)*f_star[xf2][k]-q*(1-2*q)*f_star[xf3][k];
+				}
+				else
+				{
+					lat.f_[xf1][bb[k]] = (2*q-1)/q*f_star[xf1][bb[k]]+1/(q*(2*q+1))*f_star[xf1][k]+(1-2*q)/(2*q+1)*f_star[xf2][bb[k]];
+				}
+			
+			}
+		}
+	}
+}*/

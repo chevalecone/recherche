@@ -196,7 +196,7 @@ void CBBSR_solid_square_BC(int nx, int const& j, Lattice lat, double** f_star, i
 		lat.f_[j][5] = r*f_star[j][6] + (1-r)*f_star[j][5];
 		lat.f_[j][8] = r*f_star[j][5] + (1-r)*f_star[j][6];
 		break;
-		case 400: //rontière Nord
+		case 400: //Frontière Nord
 		lat.f_[j][2] = f_star[j][2];
 		lat.f_[j][5] = r*f_star[j][6] + (1-r)*f_star[j][5];
 		lat.f_[j][6] = r*f_star[j][5] + (1-r)*f_star[j][6];

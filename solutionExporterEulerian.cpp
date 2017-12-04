@@ -47,7 +47,7 @@ void writeScalar(Domain& domain, string label, int iter, double* scalar)
     oss << iter;
 
     // Establish the file name
-    string filename = "output5/"+label+"_"+oss.str()+".vtk";
+    string filename = "output/"+label+"_"+oss.str()+".vtk";
 
     // Declare the output flux and open the file
     ofstream file(filename.c_str(), ios::out | ios::trunc);
@@ -122,11 +122,12 @@ void writeLattice(Domain& domain, string label, double Kn,double poro,char name,
 
     // Write iteration number to flux
 	//oss << name;
-	oss << "test_SBB";
-	oss << "_";
-     oss << iter;
+	oss << "circ_stag_04344_none";
 	oss << "_poro";
 	oss << poro;
+	//oss << "_";
+     //oss << iter;
+	 	
 	//oss << "_";
 	//oss << mu;
 	
@@ -158,7 +159,7 @@ void writeLattice(Domain& domain, string label, double Kn,double poro,char name,
         {
             file <<  lat.rho_[i] <<endl ;
         }
-        /*file << "VECTORS" << " " << "Vorticity" << " " << "double" <<endl;
+       /* file << "VECTORS" << " " << "Vorticity" << " " << "double" <<endl;
         for (int i=0 ; i<domain.getNTot() ; ++i)
         {
             file << lat.vorticity_[i][0] << " " << lat.vorticity_[i][1] << " " << 0. << endl ;
@@ -230,8 +231,71 @@ void writeLattice(Domain& domain, string label, double Kn,double poro,char name,
         for (int i=0 ; i<domain.getNTot() ; ++i)
         {
             file <<  lat.f_[i][8] <<endl ;
-        }
+        }*/
 		
+		 /* file << "SCALARS" << " " << "q0" << " " << "double" << " " << 1 <<endl;
+        file << "LOOKUP_TABLE default" << endl;
+        for (int i=0 ; i<domain.getNTot() ; ++i)
+        {
+            file <<  lat.q_[i][0] <<endl ;
+        }
+
+        file << "SCALARS" << " " << "q1" << " " << "double" << " " << 1 <<endl;
+        file << "LOOKUP_TABLE default" << endl;
+        for (int i=0 ; i<domain.getNTot() ; ++i)
+        {
+            file <<  lat.q_[i][1] <<endl ;
+        }
+
+        file << "SCALARS" << " " << "q2" << " " << "double" << " " << 1 <<endl;
+        file << "LOOKUP_TABLE default" << endl;
+        for (int i=0 ; i<domain.getNTot() ; ++i)
+        {
+            file <<  lat.q_[i][2] <<endl ;
+        }
+
+        file << "SCALARS" << " " << "q3" << " " << "double" << " " << 1 <<endl;
+        file << "LOOKUP_TABLE default" << endl;
+        for (int i=0 ; i<domain.getNTot() ; ++i)
+        {
+            file <<  lat.q_[i][3] <<endl ;
+        }
+
+        file << "SCALARS" << " " << "q4" << " " << "double" << " " << 1 <<endl;
+        file << "LOOKUP_TABLE default" << endl;
+        for (int i=0 ; i<domain.getNTot() ; ++i)
+        {
+            file <<  lat.q_[i][4] <<endl ;
+        }
+
+        file << "SCALARS" << " " << "q5" << " " << "double" << " " << 1 <<endl;
+        file << "LOOKUP_TABLE default" << endl;
+        for (int i=0 ; i<domain.getNTot() ; ++i)
+        {
+            file <<  lat.q_[i][5] <<endl ;
+        }
+
+        file << "SCALARS" << " " << "q6" << " " << "double" << " " << 1 <<endl;
+        file << "LOOKUP_TABLE default" << endl;
+        for (int i=0 ; i<domain.getNTot() ; ++i)
+        {
+            file <<  lat.q_[i][6] <<endl ;
+        }
+
+        file << "SCALARS" << " " << "q7" << " " << "double" << " " << 1 <<endl;
+        file << "LOOKUP_TABLE default" << endl;
+        for (int i=0 ; i<domain.getNTot() ; ++i)
+        {
+            file <<  lat.q_[i][7] <<endl ;
+        }
+
+        file << "SCALARS" << " " << "q8" << " " << "double" << " " << 1 <<endl;
+        file << "LOOKUP_TABLE default" << endl;
+        for (int i=0 ; i<domain.getNTot() ; ++i)
+        {
+            file <<  lat.q_[i][8] <<endl ;
+        }*/
+		/*
 		file << "SCALARS" << " " << "m0" << " " << "double" << " " << 1 <<endl;
         file << "LOOKUP_TABLE default" << endl;
         for (int i=0 ; i<domain.getNTot() ; ++i)
