@@ -132,9 +132,8 @@ void solid_fraction_circular(int N, int Q, double** solid_fraction_interpolation
 					R2 = sqrt((xF-xC)*(xF-xC)+(yF-yC)*(yF-yC));
 					cT1 = (xB-xC)/R1;
 					cT2 = (xF-xC)/R2;
-					T1_1 = acos(cT1);
 					sT1 = (yB-yC)/R1;
-					T1_2 = asin(sT1);
+
 
 					
 					if(cT1>0 && sT1>0)
@@ -219,8 +218,8 @@ void linear_interpolation_method( int j, int Q, Lattice lat, double** f_star, in
 {
 	double q;
 	int xf1, xf2,xb;
-	if(cas>4)
-	{
+	//if(cas>4)
+	//{
 		for (int k=0;k<Q;k++)
 		{
 			//Si la lattice j est fluide, et le voisin est solide
@@ -239,18 +238,19 @@ void linear_interpolation_method( int j, int Q, Lattice lat, double** f_star, in
 				{
 					lat.f_[xf1][bb[k]] = (1-1./2*q)*f_star[xf1][bb[k]]+1./2*q*f_star[xf1][k];
 				}
+				//printf("Lattice %d, direction %d, valeur de lat.f LIM : %f\n", j,bb[k],lat.f_[xf1][bb[k]]);
 			
 			}
 		}
-	}
+	//}
 }
 
 void quadratic_interpolation_method( int j, int Q, Lattice lat, double** f_star, int**conn, bool*  typeLat,  int* bb,double** solid_fraction_interpolation, double* tab_marquage, int cas)
 {
 	double q;
 	int xf1, xf2,xf3,xb;
-	if(cas>4)
-	{
+	//if(cas>4)
+	//{
 		for (int k=0;k<Q;k++)
 		{
 			//Si la lattice j est fluide, et le voisin est solide
@@ -270,15 +270,24 @@ void quadratic_interpolation_method( int j, int Q, Lattice lat, double** f_star,
 				{
 					lat.f_[xf1][bb[k]] = (2*q-1)/q*f_star[xf1][bb[k]]+1/(q*(2*q+1))*f_star[xf1][k]+(1-2*q)/(2*q+1)*f_star[xf2][bb[k]];
 				}
+				//printf("Lattice %d, direction %d, valeur de lat.f QIM : %f\n", j,bb[k],lat.f_[xf1][bb[k]]);
+			
 			
 			}
 		}
-	}
+	//}
 }
 
-/*void multireflection_interpolation_method( int j, int Q, Lattice lat, double** f_star, int**conn, bool*  typeLat,  int* bb,double** solid_fraction_interpolation, double* tab_marquage, int cas)
+void multireflection_interpolation_method( int j, int Q, Lattice lat, double** f_star, int**conn, bool*  typeLat,  int* bb,double** solid_fraction_interpolation, double* tab_marquage, int cas, double** C, double* t, double* teq, double Fpc, double mu, double rho, double** Si)
 {
 	double q;
+	//t et teq sont uniquement les moments d'ordre 3 (liés au flux d'énergie). Les autres moments sont considérés nuls
+	
+	for (int k=0;k<Q;k++)
+	{
+		t[k] =0;
+		teq[k]=0;
+	}
 	int xf1, xf2,xf3,xb,k1,k2,k3,k4,k5;
 	if(cas>4)
 	{
@@ -287,6 +296,16 @@ void quadratic_interpolation_method( int j, int Q, Lattice lat, double** f_star,
 			//Si la lattice j est fluide, et le voisin est solide
 			if ( conn[j][k]!=-1 && !typeLat[j] && typeLat[conn[j][k]])
 			{
+				q = solid_fraction_interpolation[xb][bb[k]];
+				//Création de Fpc
+				t[5] = lat.m_[j][5]; //qx
+				t[7] = lat.m_[j][7]; //qy
+				teq[5] = lat.m0_[j][5];//qx_eq
+				teq[7] = lat.m0_[j][7];//qy_eq
+				for (int l=0;l<Q;l++)
+				{
+					Fpc+=4*(Si[7][7]-0.5)*(Si[k][k]-0.5)/(3*mu/rho*(1+q)*(1+q))*C[k][l]*(t[l]-teq[l]);
+				}
 				tab_marquage[j] = 1;
 				xf1 = j;
 				xf2 = conn[j][bb[k]];
@@ -295,16 +314,36 @@ void quadratic_interpolation_method( int j, int Q, Lattice lat, double** f_star,
 				q = solid_fraction_interpolation[xb][bb[k]];
 				k1 = (1-2*q-2*q*q)/((1+q)*(1+q));
 				k2 = q*q/((1+q)*(1+q));
-				k3 = (1-2*q-2*				if(q<0.5)
-				{
-					lat.f_[xf1][bb[k]] = q*(1+2*q)*f_star[xf1][k]+(1-4*q*q)*f_star[xf2][k]-q*(1-2*q)*f_star[xf3][k];
-				}
-				else
-				{
-					lat.f_[xf1][bb[k]] = (2*q-1)/q*f_star[xf1][bb[k]]+1/(q*(2*q+1))*f_star[xf1][k]+(1-2*q)/(2*q+1)*f_star[xf2][bb[k]];
-				}
-			
+
+				lat.f_[xf1][bb[k]] = k1*f_star[xf2][k]+k2*f_star[xf3][k]-k1*f_star[xf1][bb[k]]-k2*f_star[xf2][bb[k]]+f_star[xf1][k]+Fpc;
 			}
 		}
 	}
-}*/
+}
+
+void central_interpolation_method( int j, int Q, Lattice lat, double** f_star, int**conn, bool*  typeLat,  int* bb,double** solid_fraction_interpolation, double* tab_marquage, int cas)
+{
+	double q;
+	int xf1, xf2,xb;
+	//if(cas>4)
+	//{
+		for (int k=0;k<Q;k++)
+		{
+			//Si la lattice j est fluide, et le voisin est solide
+			if ( conn[j][k]!=-1 && !typeLat[j] && typeLat[conn[j][k]])
+			{
+				tab_marquage[j] = 1;
+				xf1 = j;
+				xf2 = conn[j][bb[k]];
+				xb = conn[j][k];
+				q = solid_fraction_interpolation[xb][bb[k]];
+				
+				lat.f_[xf1][bb[k]] = (1-2*q)/(1+2*q)*f_star[xf2][k]-(1-2*q)/(1+2*q)*f_star[xf1][bb[k]] +f_star[xf1][k]  ;
+
+
+				//printf("Lattice %d, direction %d, valeur de lat.f LIM : %f\n", j,bb[k],lat.f_[xf1][bb[k]]);
+			
+			}
+		}
+	//}
+}

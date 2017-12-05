@@ -17,3 +17,5 @@ void solid_fraction_circular(int N, int Q, double** solid_fraction_interpolation
 //******************METHODES D'INTERPOLATION*******************//
 void linear_interpolation_method( int j, int Q, Lattice lat, double** f_star, int**conn, bool*  typeLat,  int* bb,double** solid_fraction_interpolation, double* tab_marquage, int cas);
 void quadratic_interpolation_method( int j, int Q, Lattice lat, double** f_star, int**conn, bool*  typeLat,  int* bb,double** solid_fraction_interpolation, double* tab_marquage, int cas);
+void multireflection_interpolation_method( int j, int Q, Lattice lat, double** f_star, int**conn, bool*  typeLat,  int* bb,double** solid_fraction_interpolation, double* tab_marquage, int cas, double** C, double* t, double* teq, double Fpc, double mu, double rho, double** Si);
+void central_interpolation_method( int j, int Q, Lattice lat, double** f_star, int**conn, bool*  typeLat,  int* bb,double** solid_fraction_interpolation, double* tab_marquage, int cas);

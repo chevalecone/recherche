@@ -176,6 +176,8 @@ void bounceback_solid_BC(int nx, int const& j, Lattice lat, double** f_star, int
 		if ( conn[j][k]!=-1 && !typeLat[j] && typeLat[conn[j][k]])
 		{
 			lat.f_[j][bb[k]] = f_star[j][k];
+			//printf("Lattice %d, direction %d, valeur de lat.f none : %f\n", j,bb[k],lat.f_[j][bb[k]]);
+			
 		}
 	}
 }

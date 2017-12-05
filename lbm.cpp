@@ -49,9 +49,9 @@
 //0.0564 0.1692 0.3385 1.6926 3.3851
 # define KNU  0.1128
 # define XMIN 0
-# define XMAX 20
+# define XMAX 250
 # define YMIN 0
-# define YMAX 20
+# define YMAX 40
 # define OUTPUT 100
 # define PRECISION 0.00000005
 
@@ -115,9 +115,11 @@ int main()
 	//********************************ALLOCATION DE LA MEMOIRE*************************************//
 
 	//Célérité de la lattice, Re, Vitesse max, variables pour la convergence en temps, force de drag et lift	
-	double cs = 1/sqrt(3)*xi_r,Re,Umax,valeur1=0,valeur2=0,erreur=1,df,lf,sigma,w_time=0,Mach, poro, ttsity, Kne, Knee, lambdae;
+	double cs = 1/sqrt(3)*xi_r,Re,Umax,valeur1=0,valeur2=0,erreur=1,df,lf,sigma,w_time=0,Mach, poro, ttsity, Kne, Knee, lambdae, Fpc;
 	int i,j,k,l,m;
 	double* buffer = new double[10];
+	double* t = new double[Q];
+	double* teq = new double[Q];
 	double* buffer2 = new double[10];
 	double* tab_marquage = new double[N];
 	double* test = new double[5];
@@ -526,9 +528,10 @@ while((erreur>error || erreur<-error))
 		//CBBSR_N_BC_Couette(j,cas[j],lat,r,f_star,uw,xi,cs, omega_i);
 		//CBBSR_N_BC(j,cas[j],lat,r,f_star);
 		//CBBSR_S_BC(j,cas[j],lat,r,f_star);  
-		bounceback_solid_BC(nx,j,lat,f_star,conn,typeLat,bb,nombre,pos,cas[j]);
-		//linear_interpolation_method(j,Q,lat,f_star,conn,typeLat,bb,solid_fraction_interpolation, tab_marquage, cas[j]);
+		//bounceback_solid_BC(nx,j,lat,f_star,conn,typeLat,bb,nombre,pos,cas[j]);
+		linear_interpolation_method(j,Q,lat,f_star,conn,typeLat,bb,solid_fraction_interpolation, tab_marquage, cas[j]);
 		//quadratic_interpolation_method(j,Q,lat,f_star,conn,typeLat,bb,solid_fraction_interpolation, tab_marquage, cas[j]);
+		multireflection_interpolation_method(j,Q,lat,f_star,conn,typeLat,bb,solid_fraction_interpolation,tab_marquage,cas[j],C,t,teq,Fpc,mu,lat.rho_[j],Si);
 		//pression_in_BC( j,cas[j],lat,xi_r,rho_in);
         //pression_out_BC( j,cas[j],lat,xi_r,rho_out);		
 		periodic_NS_BC(j,nx,ny,cas[j],lat,f_star); 
