@@ -172,12 +172,11 @@ void bounceback_solid_BC(int nx, int const& j, Lattice lat, double** f_star, int
 		//Si le voisin dans la direction du bounce-back est une lattice solide
 		//Alors il y a BB
 		// Attention ! On ne fait pas le contraire (si la lattice est solide, et que le voisin est fluide, alors on effectue un traitement sur les populations du voisin fluide)
-		//Car pour des mur convexes, il peut y avoir redondance
+		//Car pour des murs convexes, il peut y avoir redondance
 		if ( conn[j][k]!=-1 && !typeLat[j] && typeLat[conn[j][k]])
 		{
 			lat.f_[j][bb[k]] = f_star[j][k];
 			//printf("Lattice %d, direction %d, valeur de lat.f none : %f\n", j,bb[k],lat.f_[j][bb[k]]);
-			
 		}
 	}
 }

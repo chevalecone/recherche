@@ -30,10 +30,10 @@
 
 //Variables de la simulation
 # define RHO 1
-# define MU 0.5
+# define MU 0.9
 # define DX 1
 
-# define dRHO 1.2
+# define dRHO 1.4
 # define dFi 0.00000001
 # define U_IN_x 0.0
 # define U_IN_y 0.
@@ -43,17 +43,17 @@
 # define UW_Y 0
 # define R 1
 # define BETA 1
-# define PORO 0.6
+# define PORO 0.65
 # define ASPECT_RATIO 0.65
 // 0.0564 0.1128 0.1692 0.2257 0.3385 0.4514     0.6670 0.9027 1.1284 1.6926 2.2568 3.3851    4.5135 6.7703 9.0270 11.2838 16.9257 
 //0.0564 0.1692 0.3385 1.6926 3.3851
 # define KNU  0.1128
 # define XMIN 0
-# define XMAX 250
+# define XMAX 200
 # define YMIN 0
-# define YMAX 40
+# define YMAX 100
 # define OUTPUT 100
-# define PRECISION 0.00000005
+# define PRECISION 0.00000001
 
 
 int main()
@@ -74,6 +74,7 @@ int main()
     domain.setYMin(ymin);
     domain.setYMax(ymax);
 
+	
     // Propriétés physiques
     double tau = 1; //Temps de relaxation
     double mu = MU; //Viscosité dynamique du fluide
@@ -139,6 +140,7 @@ int main()
 	int **conn = new int*[N]; //Matrice de connectivité des lattices
 	bool* typeLat = new bool[N]; //booléen pour déterminer si le noeud est solide (true) ou fluide (false)
 	bool* typeLat2 = new bool[N];
+	bool* typeLat_buf2 = new bool[N];
 	double** S = new double*[N];
 	double **xi = new double*[Q];//Tableau des vecteurs des vitesses du modèle
 	double** Pi_neq = new double*[D];
@@ -216,7 +218,7 @@ int main()
 	}
 
 //******************************CREATION DES SOLIDES******************************************//
-	double ratio = 0.6,nombre =0;
+	double ratio = 0.1,nombre =0;
 	double** solid_fraction_interpolation = new double*[N];
 	for (j=0;j<N;j++)
 	{
@@ -239,9 +241,9 @@ int main()
 	printf("Périmètre : %f\n",perimeter_ellipse);
 	printf("Diamètre hydraulique : %f\n",hydraulic_diameter_ellipse);*/
 	
-	//poro = PORO;
+	poro = PORO;
 	//Milieu poreux aléatoire avec des cylindres à section cylindriques
-	//randomCircular(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro,nombre, cas);
+	randomCircular(nx,ny,xmin,xmax,ymin,ymax,N,Q,position,typeLat,typeLat_buf2,poro,nombre, cas, solid_fraction_interpolation, conn);
 	//Milieu poreux aléatoire avec des cylindres à section elliptique
 	//randomEllipse(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro,nombre,cas,a_ellipse,b_ellipse);
 
@@ -249,19 +251,25 @@ int main()
 	
 	//Milieu poreux aléatoire avec des cylindres à section carré
 	//randomSquare(nx,ny,xmin,xmax,ymin,ymax,N,position,typeLat,poro, nombre, cylinder1);
-	//typeSquare (0.48*xmax, 0.48*ymax, 0.188*ymax, 0.188*ymax, N, position,typeLat);
-	//solid_fraction_square(N, Q, solid_fraction_interpolation,conn, 0.48*xmax, 0.48*ymax, 0.188*ymax, typeLat, buffer, position);
+	/*typeSquare (0,0, ratio*ymax, N, position,typeLat, typeLat2);
+	solid_fraction_square(N, Q, solid_fraction_interpolation,conn, 0, 0, ratio*ymax, typeLat2, buffer, position);
+	typeSquare (xmax,0, ratio*ymax, N, position,typeLat, typeLat2);
+	solid_fraction_square(N, Q, solid_fraction_interpolation,conn,xmax,0,ratio*ymax, typeLat2, buffer, position);
+	typeSquare (0, ymax, ratio*ymax, N, position,typeLat, typeLat2);
+	solid_fraction_square(N, Q, solid_fraction_interpolation,conn, 0, ymax, ratio*ymax, typeLat2, buffer, position);
+	typeSquare (xmax,ymax, ratio*ymax, N, position,typeLat, typeLat2);
+	solid_fraction_square(N, Q, solid_fraction_interpolation,conn, xmax,ymax,ratio*ymax, typeLat2, buffer, position);*/
 	//typeEllipse(0.5*xmax, 0.5*ymax, 0.1*ymax, 0.2*ymax, 45, N, position, typeLat);
-	//typeCircular(0,0,ratio*ymax,N,position,typeLat, typeLat2);	
-	//solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, 0,0, ratio*ymax, typeLat2, position);
-	//typeCircular(xmax,0,ratio*ymax,N,position,typeLat,typeLat2);
-	//solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, xmax, 0, ratio*ymax, typeLat2, position);
-	//typeCircular(0,ymax,ratio*ymax,N,position,typeLat,typeLat2);
-	//solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, 0, ymax, ratio*ymax, typeLat2, position);
-	//typeCircular(xmax,ymax,ratio*ymax,N,position,typeLat,typeLat2);
-	//solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, xmax,ymax, ratio*ymax, typeLat2, position);
+	/*typeCircular(0,0,ratio*ymax,N,position,typeLat, typeLat2);	
+	solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, 0,0, ratio*ymax, typeLat2, position);
+	typeCircular(xmax,0,ratio*ymax,N,position,typeLat,typeLat2);
+	solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, xmax, 0, ratio*ymax, typeLat2, position);
+	typeCircular(0,ymax,ratio*ymax,N,position,typeLat,typeLat2);
+	solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, 0, ymax, ratio*ymax, typeLat2, position);
+	typeCircular(xmax,ymax,ratio*ymax,N,position,typeLat,typeLat2);
+	solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, xmax,ymax, ratio*ymax, typeLat2, position);
 	typeCircular(0.5*xmax,0.5*ymax,ratio*ymax,N,position,typeLat,typeLat2);
-	solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, 0.5*xmax, 0.5*ymax, ratio*ymax, typeLat2, position);
+	solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, 0.5*xmax, 0.5*ymax, ratio*ymax, typeLat2, position);*/
 
 
 	for (j=0;j<N;j++)
@@ -269,9 +277,13 @@ int main()
 		for (k=0;k<Q;k++)
 		{
 				lat.q_[j][k] =solid_fraction_interpolation[j][k];
+				/*if(solid_fraction_interpolation[j][k]!=0)
+				{
+					printf("Lattice %d, voisin %d, fraction : %f\n",j,k,solid_fraction_interpolation[j][k]);
+				}	*/
 		} 
 	}
-	poro = porosite(typeLat,nombre,N);
+	//poro = porosite(typeLat,nombre,N);
 	//printf("poro : %f\n",poro);
 	//printf("Diametre : %f\n",100*ratio);
 	
@@ -285,6 +297,7 @@ int main()
 	}*/
 	nettoyage(typeLat,conn,N,Q);
 	poro = porosite (typeLat,nombre,N);
+	//poro = circular_porosite(ratio*ny,nx,ny);
 	printf("Porosité : %f\n",poro);
 	
 //****************************ECOULEMENTS RAREFIES**********************************//
@@ -296,7 +309,7 @@ int main()
 	double beta = temp2[0];
 	double sigma1 = temp2[0];
 	char name = FileName(Kn);
-
+    writeLattice(domain,"LBM",Kn,poro,name,0,lat);
 //*************************SLIP VELOCITY***************************//
 
 	//Coefficients des vitesses de glissements considérés
@@ -530,8 +543,9 @@ while((erreur>error || erreur<-error))
 		//CBBSR_S_BC(j,cas[j],lat,r,f_star);  
 		//bounceback_solid_BC(nx,j,lat,f_star,conn,typeLat,bb,nombre,pos,cas[j]);
 		linear_interpolation_method(j,Q,lat,f_star,conn,typeLat,bb,solid_fraction_interpolation, tab_marquage, cas[j]);
+		//central_interpolation_method(j,Q,lat,f_star,conn,typeLat,bb,solid_fraction_interpolation, tab_marquage, cas[j]);
 		//quadratic_interpolation_method(j,Q,lat,f_star,conn,typeLat,bb,solid_fraction_interpolation, tab_marquage, cas[j]);
-		multireflection_interpolation_method(j,Q,lat,f_star,conn,typeLat,bb,solid_fraction_interpolation,tab_marquage,cas[j],C,t,teq,Fpc,mu,lat.rho_[j],Si);
+		//multireflection_interpolation_method(j,Q,lat,f_star,conn,typeLat,bb,solid_fraction_interpolation,tab_marquage,cas[j],C,t,teq,Fpc,mu,lat.rho_[j],Si);
 		//pression_in_BC( j,cas[j],lat,xi_r,rho_in);
         //pression_out_BC( j,cas[j],lat,xi_r,rho_out);		
 		periodic_NS_BC(j,nx,ny,cas[j],lat,f_star); 
@@ -573,9 +587,9 @@ while((erreur>error || erreur<-error))
 		it++;
 }
 	//char name = FileName(Kn);
-	writeScalar(domain, "marquage", it, tab_marquage);
+	//writeScalar(domain, "marquage", it, tab_marquage);
 	
-	writeLattice(domain,"LBM",Kn,poro,name,it,lat);
+	writeLattice(domain,"LBM",mu,poro,name,it,lat);
 	time_t timer2 = time(NULL);
 	printf("Temps d'exécution : %d s\n",(int)(timer2-timer1));
 	printf("Temps d'exécution pour 1000 itérations: %.2f s\n",(double)((int)(timer2-timer1))/it*1000);

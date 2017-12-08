@@ -13,6 +13,7 @@
 #include "lattice.h"
 #include "solutionExporterEulerian.h"
 #include "function.h"
+#include "solid_interpolation_method.h"
 
 # define M_PI  3.14159265358979323846
 
@@ -109,16 +110,21 @@ void localisation(int nx, int ny, double dx, double** position)
 }
 
 //Création d'un cylindre à section carrée en fonction des coordonnées de son centre et de ses dimensions
-void typeSquare (double abscisse, double ordonnee, double L, double l, int N, double** position, bool* typeLat)
+void typeSquare (double abscisse, double ordonnee, double diametre, int N, double** position, bool* typeLat, bool* typeLat_buf)
 {
 	for (int i=0;i<N;i++)
 	{
-		// si la différence d'abscisse entre le centre et la lattice est inférieur à L/2 
-		// et la différence d'ordonée entre le centre et la lattice est inférieur à l/2
+		typeLat_buf[i] = 0;
+	}
+	for (int i=0;i<N;i++)
+	{
+		// si la différence d'abscisse entre le centre et la lattice est inférieur à D/2 
+		// et la différence d'ordonée entre le centre et la lattice est inférieur à D/2
 		// la lattice est solide
-		if(fabs(position[i][0]-abscisse)<L/2 && fabs(position[i][1]-ordonnee)<l/2)
+		if(fabs(position[i][0]-abscisse)<diametre/2 && fabs(position[i][1]-ordonnee)<diametre/2)
 		{
 			typeLat[i] = true;
+			typeLat_buf[i] = true;
 		}
 	}
 }
@@ -261,7 +267,7 @@ void randomEllipse(int nx, int ny, double xmin, double xmax, double ymin, double
 }
 
 //Fonction générant des cylindres circulaires jusqu'à la porosité voulue, SANS encastrement
-void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, bool* typeLat_buf2, double poro, double nombre, int* cas)
+void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, int Q, double** position, bool* typeLat, bool* typeLat_buf2, double poro, double nombre, int* cas, double** solid_fraction_interpolation, int** conn)
 {
 	int NCylindres = 500;
 	bool* typeLat_buf = new bool[N];
@@ -282,7 +288,7 @@ void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double
 	int rnd2 = rand()%ny ;
 	int MIN = 5;
 	int MAX = 15;
-	int ratio = 20; //diametre entre 10 et 40 % de la largeur
+	double ratio =10; //diametre entre 10 et 40 % de la largeur
 	double abscisse =  position[rnd][0];  // abscisse entre 10 et 90 % de la longueur
 	double ordonnee =  position[rnd2*nx][1];  // ordonnée entre 10 et 90 % de la largeur
 	srand(time(NULL));
@@ -297,8 +303,8 @@ void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double
 	// On compare les deux, si une lattice est considérée comme solide dans les deux
 	// On supprime le cylindre nouvellement crée, et on réitère
 	// 2° contrainte : on regarde si les lattices solides créées sont situées au niveau des frontières
-	while (poro2<=0.99*poro || poro2>=1.01*poro)
-	{
+	while (poro2<=0.99*poro || poro2>=1.001*poro)
+	{	
 		typeCircular(abscisse,ordonnee,diametre,N,position,typeLat_buf, typeLat_buf2); // Création nouveau cylindre
 		for(int j=0;j<N;j++)
 		{
@@ -309,13 +315,16 @@ void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double
 			}
 			//Contrainte n°2
 			if(typeLat_buf[j]==true && (cas[j]!=0 || position[j][0]<0.03*nx || position[j][1]<0.03*ny  || position[j][0]>0.97*nx  || position[j][1]>0.97*ny ))
-				{
-					buf++;
-				}
+			{
+				buf++;
+			}
 		}
 		//Si les deux contraintes sont réalisées, ie buf =0, on crée le cylindre
 		if(buf==0)
 		{
+			solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, abscisse, ordonnee, diametre, typeLat_buf2, position);
+			//typeCircular(xmax,0,ratio*ymax,N,position,typeLat,typeLat2);
+	//solid_fraction_circular(N, Q, solid_fraction_interpolation,conn, xmax, 0, ratio*ymax, typeLat2, position);
 			tableau[num][0] = abscisse;
 			tableau[num][1]  = ordonnee;
 			tableau[num][2]  = diametre;
@@ -330,7 +339,7 @@ void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double
 		}
 		rnd  = rand()%nx ;
 		rnd2 = rand()%ny;
-		ratio = 20; //diametre entre 10 et 40 % de la largeur
+		ratio = 10; //diametre entre 10 et 40 % de la largeur
 		abscisse =  position[rnd][0];
 		ordonnee =  position[rnd2*nx][1];
 		diametre = (ratio)*0.01*ny;	
@@ -350,11 +359,11 @@ void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double
 			printf("Cylindre %d, diametre %f\n",i,tableau[i][2]);
 		}
 	}
-	writePorousMaterial("Random_circular",poro2,tableau,NCylindres);
+	//writePorousMaterial("Random_circular",poro2,tableau,NCylindres);
 }
 
 //Fonction générant des cylindres à section carrée jusqu'à la porosité voulue, SANS encastrement
-void randomSquare(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre, double** cylinder, int* cas)
+void randomSquare(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat,bool* typeLat_buf2, double poro, double nombre, int* cas)
 {
 	int NCylindres = 100;
 	bool* typeLat_buf = new bool[N];
@@ -377,7 +386,7 @@ void randomSquare(int nx, int ny, double xmin,double xmax, double ymin, double y
 	printf("Abscisse : %f Ordonnée : %f Diametre : %f\n",abscisse, ordonnee, diametre);
 	while (poro2<=0.99*poro || poro2>=1.01*poro)
 	{
-		typeSquare (abscisse,ordonnee,diametre,diametre,N,position,typeLat);
+		typeSquare (abscisse,ordonnee,diametre,N,position,typeLat_buf, typeLat_buf2);
 		for(int j=0;j<N;j++)
 		{
 			//Contrainte n°1
@@ -470,6 +479,22 @@ double porosite (bool* typeLat, int nombre, int N)
 	}
 	return (double)(N-nombre)/N;
 }
+
+double square_porosite (double diametre, int nx, int ny)
+{
+	return (nx*ny-diametre*diametre)/(nx*ny);
+}
+
+double circular_porosite (double diametre, int nx, int ny)
+{
+	return (nx*ny-0.5*diametre*diametre*M_PI)/(nx*ny);
+}
+
+double random_same_diameter_circular_porosite(double nombre, int nx, int ny, double diametre)
+{
+	return (nx*ny-0.5*diametre*diametre*M_PI*nombre)/(nx*ny);
+}
+
 
 //Fonction permettant de donner le numéro des lattices voisines en fonction du schéma D2Q9
 void connectivite(int nx,int ny,  int Q, int** conn)

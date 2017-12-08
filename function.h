@@ -41,17 +41,20 @@ void pos_solide (bool* typeLat,  int* pos, int nx, int ny);
 //Création solide
 void typeCircular(double abscisse, double ordonnee, double diametre, int N, double** position, bool* typeLat, bool* typeLat_buf);
 void typeEllipse(double abscisse, double ordonnee, double a, double b, double orientation, int N, double** position, bool*typeLat, bool* typeLat_buf);
-void typeSquare (double abscisse, double ordonnee, double L, double l, int N, double** position, bool* typeLat);
+void typeSquare (double abscisse, double ordonnee, double diametre, int N, double** position, bool* typeLat, bool* typeLat_buf);
 
 
 
 //Création d'un milieu poreux aléatoires avec des cylindres aux sections définies, fonction de la porosité
-void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, bool* typeLat_buf2, double poro, double nombre, int* cas);
+void randomCircular(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, int Q, double** position, bool* typeLat, bool* typeLat_buf2, double poro, double nombre, int* cas, double** solid_fraction_interpolation, int** conn);
 void randomSquare(int nx, int ny, double xmin,double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, double poro, double nombre, double** cylinder, int* cas);
 void randomEllipse(int nx, int ny, double xmin, double xmax, double ymin, double ymax, int N, double** position, bool* typeLat, bool* typeLat_buf2, double poro, double nombre, int* cas, double a_ellipse, double b_ellipse);
 
 //Calcul de porosité
 double porosite (bool* typeLat, int nombre, int N);
+double circular_porosite  (double diametre, int nx, int ny);
+double square_porosite (double diametre, int nx, int ny);
+double random_same_diameter_circular_porosite(double nombre, int nx, int ny, double diametre);
 
 //Fonction nettoyage permettant d'enlever les défauts numériques (optionnel)
 void nettoyage(bool* typeLat, int** conn, int N, int Q);

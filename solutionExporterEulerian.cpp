@@ -122,14 +122,14 @@ void writeLattice(Domain& domain, string label, double Kn,double poro,char name,
 
     // Write iteration number to flux
 	//oss << name;
-	oss << "circ_stag_04344_LIM";
+	oss << "random_same_diameter_LIM";
 	oss << "_poro";
 	oss << poro;
 	//oss << "_";
      //oss << iter;
 	 	
-	//oss << "_";
-	//oss << mu;
+	oss << "_";
+	oss << Kn;
 	
 	//oss << name;
 
@@ -159,11 +159,11 @@ void writeLattice(Domain& domain, string label, double Kn,double poro,char name,
         {
             file <<  lat.rho_[i] <<endl ;
         }
-       /* file << "VECTORS" << " " << "Vorticity" << " " << "double" <<endl;
+       file << "VECTORS" << " " << "Vorticity" << " " << "double" <<endl;
         for (int i=0 ; i<domain.getNTot() ; ++i)
         {
             file << lat.vorticity_[i][0] << " " << lat.vorticity_[i][1] << " " << 0. << endl ;
-        }*/
+        }
         file << "VECTORS" << " " << "Velocity" << " " << "double" <<endl;
         for (int i=0 ; i<domain.getNTot() ; ++i)
         {
@@ -233,7 +233,7 @@ void writeLattice(Domain& domain, string label, double Kn,double poro,char name,
             file <<  lat.f_[i][8] <<endl ;
         }*/
 		
-		 /* file << "SCALARS" << " " << "q0" << " " << "double" << " " << 1 <<endl;
+		/*  file << "SCALARS" << " " << "q0" << " " << "double" << " " << 1 <<endl;
         file << "LOOKUP_TABLE default" << endl;
         for (int i=0 ; i<domain.getNTot() ; ++i)
         {
